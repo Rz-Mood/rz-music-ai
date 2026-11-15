@@ -1,7 +1,7 @@
 {
-  "name": "RZ Music AI",
-  "short_name": "RZ Music",
-  "description": "Discover music similar to your favorite tracks",
+  "name": "RZ Mood",
+  "short_name": "RZ Mood",
+  "description": "Personal music discovery",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#080c0a",

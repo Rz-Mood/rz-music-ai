@@ -1,77 +1,41 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090d0b">
-  <meta name="description" content="RZ Music AI - Discover music similar to your favorite tracks">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
-  <title>RZ Music AI</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d0b"><meta name="description" content="RZ Mood — Personal music discovery">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css"><title>RZ Mood</title>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#" aria-label="RZ Music AI home">
-        <span class="brand-mark">RZ</span>
-        <span>RZ <b>Music AI</b></span>
-      </a>
-      <span class="status"><i></i> MUSIC DISCOVERY</span>
-    </header>
-
-    <main>
-      <section class="hero">
-        <p class="eyebrow">YOUR PERSONAL MUSIC RADAR</p>
-        <h1>موسیقی بعدی‌ات را <span>کشف کن.</span></h1>
-        <p class="sub">اسم یک آهنگ یا خواننده را وارد کن تا آهنگ‌های مشابهش را پیدا کنیم.</p>
-
-        <form id="searchForm" class="search-box">
-          <span class="search-icon">⌕</span>
-          <input id="query" type="search" placeholder="مثلاً: The Weeknd یا Blinding Lights" autocomplete="off" required>
-          <button type="submit" id="searchButton">کشف آهنگ‌ها <span>↗</span></button>
-        </form>
-        <p class="hint">پیشنهادها با Last.fm پیدا می‌شوند؛ برای گوش‌دادن، آهنگ را در Spotify باز کن.</p>
-      </section>
-
-      <section class="results-section">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">DISCOVER</p>
-            <h2 id="resultsTitle">آماده کشف موسیقی؟</h2>
-          </div>
-          <span id="resultCount" class="count"></span>
-        </div>
-        <div id="message" class="message">
-          <div class="empty-icon">♫</div>
-          <strong>از یک آهنگ شروع کن</strong>
-          <span>نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس.</span>
-        </div>
-        <div id="results" class="tracks" aria-live="polite"></div>
-      </section>
-
-      <section class="settings">
-        <details>
-          <summary>تنظیمات اتصال Last.fm <span class="optional">اختیاری برای شروع</span></summary>
-          <div class="settings-content">
-            <p>برای دریافت پیشنهادهای واقعی، API Key رایگان Last.fm را وارد کن. کلید فقط در همین مرورگر ذخیره می‌شود.</p>
-            <label for="apiKey">Last.fm API Key</label>
-            <div class="key-row">
-              <input id="apiKey" type="password" placeholder="API Key خود را وارد کن" autocomplete="off">
-              <button id="saveKey" class="secondary">ذخیره</button>
-            </div>
-            <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">دریافت API Key از سایت رسمی Last.fm ↗</a>
-            <p class="small-note">کلید API را با کسی به اشتراک نگذار. این نسخه برای استفاده شخصی و آزمایشی است.</p>
-          </div>
-        </details>
-      </section>
-    </main>
-
-    <footer>
-      <span>RZ MUSIC AI</span>
-      <span>BUILT FOR YOUR SOUND <b>●</b></span>
-    </footer>
-  </div>
-  <script src="app.js"></script>
-</body>
-</html>
+<div class="app-shell">
+<header class="topbar glass">
+<a class="brand" href="#" aria-label="RZ Mood"><span class="brand-mark">RZ</span><span>RZ <b>Mood</b></span></a>
+<div class="top-actions"><span class="status"><i></i> MUSIC DISCOVERY</span>
+<button id="langToggle" class="utility-btn" type="button">EN</button>
+<select id="themeSelect" class="utility-select" aria-label="Theme"><option value="rz">RZ Mood</option><option value="ocean">Ocean Glass</option><option value="violet">Violet Night</option><option value="sunset">Sunset</option></select></div>
+</header>
+<main>
+<section class="hero glass">
+<p class="eyebrow">YOUR PERSONAL MUSIC RADAR</p>
+<h1 data-fa="موسیقی بعدی‌ات را <span>کشف کن.</span>" data-en="Discover your next <span>sound.</span>">موسیقی بعدی‌ات را <span>کشف کن.</span></h1>
+<p class="sub" data-fa="اسم یک آهنگ یا خواننده را وارد کن تا آهنگ‌های مشابهش را پیدا کنیم." data-en="Enter a song or artist to discover similar music.">اسم یک آهنگ یا خواننده را وارد کن تا آهنگ‌های مشابهش را پیدا کنیم.</p>
+<form id="searchForm" class="search-box glass-inner">
+<span class="search-icon">⌕</span><input id="query" type="search" placeholder="نام آهنگ یا خواننده؛ مثلاً Blinding Lights" autocomplete="off" required>
+<button type="submit" id="searchButton">کشف آهنگ‌ها <span>↗</span></button>
+<div class="artist-input-wrap"><label for="artist" data-fa="نام خواننده برای جست‌وجوی آهنگ (اختیاری)" data-en="Artist name for track search (optional)">نام خواننده برای جست‌وجوی آهنگ (اختیاری)</label>
+<input id="artist" type="text" placeholder="مثلاً The Weeknd" autocomplete="off"></div></form>
+<p class="hint" data-fa="پیشنهادها با MusicAtlas پیدا می‌شوند؛ برای گوش‌دادن، آهنگ را در Spotify باز کن." data-en="Discover with MusicAtlas; open Spotify to listen.">پیشنهادها با MusicAtlas پیدا می‌شوند؛ برای گوش‌دادن، آهنگ را در Spotify باز کن.</p>
+</section>
+<section class="results-section glass">
+<div class="section-heading"><div><p class="eyebrow">DISCOVER</p><h2 id="resultsTitle" data-fa="آماده کشف موسیقی؟" data-en="Ready to discover music?">آماده کشف موسیقی؟</h2></div><span id="resultCount" class="count"></span></div>
+<div id="message" class="message glass-inner"><div class="empty-icon">♫</div><strong data-fa="از یک آهنگ شروع کن" data-en="Start with a song">از یک آهنگ شروع کن</strong><span data-fa="نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس." data-en="Enter your favorite song or artist above.">نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس.</span></div>
+<div id="results" class="tracks" aria-live="polite"></div></section>
+<section class="settings glass"><details><summary data-fa="تنظیمات اتصال MusicAtlas" data-en="MusicAtlas connection settings">تنظیمات اتصال MusicAtlas</summary><div class="settings-content">
+<p data-fa="برای دریافت پیشنهادهای واقعی، API Key رایگان MusicAtlas را وارد کن. کلید فقط در همین مرورگر ذخیره می‌شود." data-en="Enter your MusicAtlas API key. It is stored in this browser only.">برای دریافت پیشنهادهای واقعی، API Key رایگان MusicAtlas را وارد کن. کلید فقط در همین مرورگر ذخیره می‌شود.</p>
+<label for="apiKey">MusicAtlas API Key</label><div class="key-row"><input id="apiKey" type="password" placeholder="API Key" autocomplete="off"><button id="saveKey" class="secondary">ذخیره</button></div>
+<a href="https://musicatlas.ai/developer/request-key" target="_blank" rel="noopener">دریافت API Key ↗</a>
+<p class="small-note" data-fa="کلید را در مخزن عمومی GitHub قرار نده. این نسخه برای استفاده شخصی است؛ برای انتشار عمومی به سرور واسط امن نیاز دارد." data-en="Never commit your key to a public GitHub repository. This personal version exposes the key in browser requests; a public app needs a secure proxy.">کلید را در مخزن عمومی GitHub قرار نده. این نسخه برای استفاده شخصی است؛ برای انتشار عمومی به سرور واسط امن نیاز دارد.</p>
+</div></details></section>
+</main>
+<footer><span>RZ MOOD</span><span>BUILT FOR YOUR SOUND <b>●</b></span></footer>
+</div><script src="app.js"></script></body></html>
