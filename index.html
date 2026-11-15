@@ -30,11 +30,9 @@
 <div class="section-heading"><div><p class="eyebrow">DISCOVER</p><h2 id="resultsTitle" data-fa="آماده کشف موسیقی؟" data-en="Ready to discover music?">آماده کشف موسیقی؟</h2></div><span id="resultCount" class="count"></span></div>
 <div id="message" class="message glass-inner"><div class="empty-icon">♫</div><strong data-fa="از یک آهنگ شروع کن" data-en="Start with a song">از یک آهنگ شروع کن</strong><span data-fa="نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس." data-en="Enter your favorite song or artist above.">نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس.</span></div>
 <div id="results" class="tracks" aria-live="polite"></div></section>
-<section class="settings glass"><details><summary data-fa="تنظیمات اتصال MusicAtlas" data-en="MusicAtlas connection settings">تنظیمات اتصال MusicAtlas</summary><div class="settings-content">
-<p data-fa="برای دریافت پیشنهادهای واقعی، API Key رایگان MusicAtlas را وارد کن. کلید فقط در همین مرورگر ذخیره می‌شود." data-en="Enter your MusicAtlas API key. It is stored in this browser only.">برای دریافت پیشنهادهای واقعی، API Key رایگان MusicAtlas را وارد کن. کلید فقط در همین مرورگر ذخیره می‌شود.</p>
-<label for="apiKey">MusicAtlas API Key</label><div class="key-row"><input id="apiKey" type="password" placeholder="API Key" autocomplete="off"><button id="saveKey" class="secondary">ذخیره</button></div>
-<a href="https://musicatlas.ai/developer/request-key" target="_blank" rel="noopener">دریافت API Key ↗</a>
-<p class="small-note" data-fa="کلید را در مخزن عمومی GitHub قرار نده. این نسخه برای استفاده شخصی است؛ برای انتشار عمومی به سرور واسط امن نیاز دارد." data-en="Never commit your key to a public GitHub repository. This personal version exposes the key in browser requests; a public app needs a secure proxy.">کلید را در مخزن عمومی GitHub قرار نده. این نسخه برای استفاده شخصی است؛ برای انتشار عمومی به سرور واسط امن نیاز دارد.</p>
+<section class="settings glass"><details><summary data-fa="وضعیت اتصال MusicAtlas" data-en="MusicAtlas connection status">وضعیت اتصال MusicAtlas</summary><div class="settings-content">
+<p data-fa="کلید API به‌صورت Secret در Cloudflare ذخیره می‌شود و دیگر نیازی به واردکردن آن در مرورگر نیست." data-en="The API key is stored as a Cloudflare Secret. You do not need to enter it in this browser.">کلید API به‌صورت Secret در Cloudflare ذخیره می‌شود و دیگر نیازی به واردکردن آن در مرورگر نیست.</p>
+<p class="small-note" id="connectionStatus">Worker: بررسی اتصال هنگام جست‌وجو انجام می‌شود.</p>
 </div></details></section>
 </main>
 <footer><span>RZ MOOD</span><span>BUILT FOR YOUR SOUND <b>●</b></span></footer>
