@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090d0b">
+  <meta name="description" content="RZ Music AI - Discover music similar to your favorite tracks">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>RZ Music AI</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="RZ Music AI home">
+        <span class="brand-mark">RZ</span>
+        <span>RZ <b>Music AI</b></span>
+      </a>
+      <span class="status"><i></i> MUSIC DISCOVERY</span>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">YOUR PERSONAL MUSIC RADAR</p>
+        <h1>موسیقی بعدی‌ات را <span>کشف کن.</span></h1>
+        <p class="sub">اسم یک آهنگ یا خواننده را وارد کن تا آهنگ‌های مشابهش را پیدا کنیم.</p>
+
+        <form id="searchForm" class="search-box">
+          <span class="search-icon">⌕</span>
+          <input id="query" type="search" placeholder="مثلاً: The Weeknd یا Blinding Lights" autocomplete="off" required>
+          <button type="submit" id="searchButton">کشف آهنگ‌ها <span>↗</span></button>
+        </form>
+        <p class="hint">پیشنهادها با Last.fm پیدا می‌شوند؛ برای گوش‌دادن، آهنگ را در Spotify باز کن.</p>
+      </section>
+
+      <section class="results-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">DISCOVER</p>
+            <h2 id="resultsTitle">آماده کشف موسیقی؟</h2>
+          </div>
+          <span id="resultCount" class="count"></span>
+        </div>
+        <div id="message" class="message">
+          <div class="empty-icon">♫</div>
+          <strong>از یک آهنگ شروع کن</strong>
+          <span>نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس.</span>
+        </div>
+        <div id="results" class="tracks" aria-live="polite"></div>
+      </section>
+
+      <section class="settings">
+        <details>
+          <summary>تنظیمات اتصال Last.fm <span class="optional">اختیاری برای شروع</span></summary>
+          <div class="settings-content">
+            <p>برای دریافت پیشنهادهای واقعی، API Key رایگان Last.fm را وارد کن. کلید فقط در همین مرورگر ذخیره می‌شود.</p>
+            <label for="apiKey">Last.fm API Key</label>
+            <div class="key-row">
+              <input id="apiKey" type="password" placeholder="API Key خود را وارد کن" autocomplete="off">
+              <button id="saveKey" class="secondary">ذخیره</button>
+            </div>
+            <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">دریافت API Key از سایت رسمی Last.fm ↗</a>
+            <p class="small-note">کلید API را با کسی به اشتراک نگذار. این نسخه برای استفاده شخصی و آزمایشی است.</p>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <footer>
+      <span>RZ MUSIC AI</span>
+      <span>BUILT FOR YOUR SOUND <b>●</b></span>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

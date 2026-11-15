@@ -1,0 +1,19 @@
+{
+  "name": "RZ Music AI",
+  "short_name": "RZ Music",
+  "description": "Discover music similar to your favorite tracks",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#080c0a",
+  "theme_color": "#090d0b",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
