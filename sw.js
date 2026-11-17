@@ -1,5 +1,5 @@
 // کش فقط برای ظاهر برنامه؛ موسیقی و API هرگز کش نمی‌شوند
-const CACHE = "music-shell-v2";
+const CACHE = "music-shell-v3";
 const SHELL = ["./", "./index.html", "./glass.css", "./app.css", "./app.js", "./site.webmanifest", "./icon192.png"];
 
 self.addEventListener("install", (e) => {

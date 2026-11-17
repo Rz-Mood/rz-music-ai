@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0c12">
-  <title>پلیر موزیک</title>
+  <title>Rz Station</title>
   <link rel="manifest" href="site.webmanifest">
   <link rel="icon" href="icon48.png">
   <link rel="apple-touch-icon" href="icon192.png">
@@ -14,23 +14,40 @@
 <body>
   <div class="wrap">
     <header class="appbar glass fade-in">
-      <h1>🎵 پلیر موزیک</h1>
-      <button id="connBadge" class="badge" type="button" title="وضعیت اتصال">اتصال مستقیم</button>
+      <h1 class="brand" aria-label="Rz Station">
+        <svg class="logo" viewBox="0 0 36 36" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" style="stop-color: var(--accent)"></stop>
+              <stop offset="1" style="stop-color: #ff72b6"></stop>
+            </linearGradient>
+          </defs>
+          <rect width="36" height="36" rx="11" fill="url(#lg)"></rect>
+          <rect class="bar b1" x="8"  y="10" width="4" height="16" rx="2" fill="#fff"></rect>
+          <rect class="bar b2" x="15" y="6"  width="4" height="24" rx="2" fill="#fff"></rect>
+          <rect class="bar b3" x="22" y="12" width="4" height="12" rx="2" fill="#fff"></rect>
+        </svg>
+        <span class="wordmark" dir="ltr"><b>Rz</b><span>Station</span></span>
+      </h1>
+      <div class="bar-actions">
+        <button id="connBadge" class="badge" type="button" data-i18n-title="badgeTitle">…</button>
+        <button id="langBtn" class="badge langbtn" type="button" aria-label="Language / زبان" title="Language / زبان">EN</button>
+      </div>
     </header>
 
-    <!-- ======== جستجو ======== -->
+    <!-- ======== Search ======== -->
     <section id="view-search" class="view">
       <form id="searchForm" class="searchbar glass fade-in">
-        <input id="q" type="search" placeholder="جستجوی آهنگ، خواننده یا آلبوم…" autocomplete="off" enterkeyhint="search">
-        <button class="glass-button go" type="submit">جستجو</button>
+        <input id="q" type="search" data-i18n-ph="searchPh" autocomplete="off" enterkeyhint="search">
+        <button class="glass-button go" type="submit" data-i18n="search">…</button>
       </form>
-      <div id="chips" class="chips" aria-label="پیشنهاد جستجو"></div>
+      <div id="chips" class="chips" data-i18n-aria="chipsLabel"></div>
 
       <details class="linkbox glass" id="linkBox">
-        <summary>🔗 پخش از لینک</summary>
+        <summary data-i18n="linkSummary">…</summary>
         <form id="linkForm">
-          <input id="linkInput" type="text" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" dir="ltr" placeholder="لینک فایل صوتی یا صفحه archive.org">
-          <button class="glass-button" type="submit">پخش</button>
+          <input id="linkInput" type="text" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" dir="ltr" data-i18n-ph="linkPh">
+          <button class="glass-button" type="submit" data-i18n="play">…</button>
         </form>
       </details>
 
@@ -40,62 +57,70 @@
       <section id="tracksBox" class="glass fade-in" hidden>
         <div class="tracks-head">
           <h2 id="itemTitle"></h2>
-          <button id="dlAll" class="glass-button" type="button">دانلود همه</button>
+          <button id="dlAll" class="glass-button" type="button" data-i18n="downloadAll">…</button>
         </div>
         <ol id="tracks"></ol>
       </section>
     </section>
 
-    <!-- ======== تاریخچه ======== -->
+    <!-- ======== History ======== -->
     <section id="view-history" class="view" hidden>
       <div class="head">
-        <h2>تاریخچه</h2>
-        <button id="clearHistory" class="glass-button mini" type="button">پاک کردن همه</button>
+        <h2 data-i18n="history">…</h2>
+        <button id="clearHistory" class="glass-button mini" type="button" data-i18n="clearAll">…</button>
       </div>
-      <p id="historyEmpty" class="empty glass">هنوز آهنگی پخش نکرده‌اید. هر آهنگی که پخش کنید اینجا ذخیره می‌شود و می‌توانید دوباره پخش، دانلود یا برای دیگران بفرستید.</p>
+      <p id="historyEmpty" class="empty glass" data-i18n="historyEmpty">…</p>
       <div id="historyList"></div>
     </section>
 
-    <!-- ======== تنظیمات ======== -->
+    <!-- ======== Settings ======== -->
     <section id="view-settings" class="view" hidden>
-      <div class="head"><h2>تنظیمات</h2></div>
+      <div class="head"><h2 data-i18n="settings">…</h2></div>
 
       <div class="card glass">
-        <h3>اتصال (پروکسی)</h3>
-        <p class="hint">اگر archive.org روی اینترنت شما بسته است، آدرس پروکسی خودتان را وارد کنید. جستجو، پخش و دانلود از طریق آن انجام می‌شود.</p>
+        <h3 data-i18n="proxyTitle">…</h3>
+        <p class="hint" data-i18n="proxyHint">…</p>
         <form id="proxyForm">
-          <input id="proxyInput" type="text" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" dir="ltr" placeholder="https://music-proxy.نام‌شما.workers.dev">
+          <input id="proxyInput" type="text" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" dir="ltr" data-i18n-ph="proxyPh">
           <div class="row">
-            <button class="glass-button" type="submit">ذخیره</button>
-            <button class="glass-button" id="proxyTest" type="button">تست اتصال</button>
-            <button class="glass-button" id="proxyClear" type="button">حذف</button>
+            <button class="glass-button" type="submit" data-i18n="save">…</button>
+            <button class="glass-button" id="proxyTest" type="button" data-i18n="testConn">…</button>
+            <button class="glass-button" id="proxyClear" type="button" data-i18n="remove">…</button>
           </div>
         </form>
         <p id="proxyMsg" class="hint state"></p>
       </div>
 
       <div class="card glass">
-        <h3>رنگ برنامه</h3>
-        <div class="themes" id="themes" aria-label="تم رنگی"></div>
-      </div>
-
-      <div class="card glass">
-        <h3>داده‌ها</h3>
-        <p class="hint">تاریخچه‌ی پخش و جستجوهای اخیر فقط روی همین دستگاه ذخیره می‌شوند.</p>
+        <h3 data-i18n="langTitle">…</h3>
         <div class="row">
-          <button class="glass-button" id="clearSearches" type="button">پاک کردن جستجوهای اخیر</button>
-          <button class="glass-button" id="clearHistory2" type="button">پاک کردن تاریخچه</button>
+          <button class="glass-button" id="langFa" type="button">فارسی</button>
+          <button class="glass-button" id="langEn" type="button">English</button>
         </div>
       </div>
 
       <div class="card glass">
-        <h3>راهنما</h3>
-        <p class="hint">منبع موسیقی Internet Archive است و فقط آثار آزاد و قانونی در آن پیدا می‌شود. اگر archive.org فقط به‌خاطر DNS بسته باشد، تغییر DNS گوشی (Private DNS روی <span dir="ltr">dns.google</span>) هم ممکن است کافی باشد.</p>
+        <h3 data-i18n="themeTitle">…</h3>
+        <div class="themes" id="themes"></div>
+      </div>
+
+      <div class="card glass">
+        <h3 data-i18n="dataTitle">…</h3>
+        <p class="hint" data-i18n="dataHint">…</p>
+        <div class="row">
+          <button class="glass-button" id="clearSearches" type="button" data-i18n="clearSearches">…</button>
+          <button class="glass-button" id="clearHistory2" type="button" data-i18n="clearHistory">…</button>
+        </div>
+      </div>
+
+      <div class="card glass">
+        <h3 data-i18n="helpTitle">…</h3>
+        <p class="hint" data-i18n-html="helpHint">…</p>
       </div>
     </section>
   </div>
 
-  <!-- ======== پلیر ======== -->
+  <!-- ======== Player ======== -->
   <footer id="player" class="glass glow" hidden>
     <div class="np">
       <div id="nowPlaying">—</div>
@@ -103,18 +128,33 @@
     </div>
     <audio id="audio" controls preload="none"></audio>
     <div class="ctrl">
-      <button id="prev" class="glass-button" type="button" aria-label="قبلی">⏮</button>
-      <button id="dlNow" class="glass-button" type="button">⬇ دانلود</button>
-      <button id="shareNow" class="glass-button" type="button">⤴ اشتراک</button>
-      <button id="next" class="glass-button" type="button" aria-label="بعدی">⏭</button>
+      <button id="prev" class="glass-button" type="button" data-i18n-aria="prev">⏮</button>
+      <button id="dlNow" class="glass-button" type="button" data-i18n="dlNow">…</button>
+      <button id="shareNow" class="glass-button" type="button" data-i18n="shareNow">…</button>
+      <button id="next" class="glass-button" type="button" data-i18n-aria="next">⏭</button>
     </div>
   </footer>
 
-  <nav id="tabs" class="glass" aria-label="بخش‌ها">
-    <button type="button" data-view="search" class="tab on"><span class="ic">🔎</span><span>جستجو</span></button>
-    <button type="button" data-view="history" class="tab"><span class="ic">🕘</span><span>تاریخچه</span></button>
-    <button type="button" data-view="settings" class="tab"><span class="ic">⚙</span><span>تنظیمات</span></button>
+  <nav id="tabs" class="glass" data-i18n-aria="tabsLabel">
+    <button type="button" data-view="search" class="tab on"><span class="ic">🔎</span><span data-i18n="tabSearch">…</span></button>
+    <button type="button" data-view="history" class="tab"><span class="ic">🕘</span><span data-i18n="tabHistory">…</span></button>
+    <button type="button" data-view="settings" class="tab"><span class="ic">⚙</span><span data-i18n="tabSettings">…</span></button>
   </nav>
+
+  <!-- ======== Share sheet ======== -->
+  <div id="shareSheet" class="sheet" hidden>
+    <div class="sheet-box glass" role="dialog" aria-modal="true" aria-labelledby="shareHead">
+      <h3 id="shareHead" data-i18n="shareTitle">…</h3>
+      <div id="shareName" class="share-name"></div>
+      <input id="shareLink" type="text" readonly dir="ltr" spellcheck="false" aria-label="Link">
+      <p id="shareMsg" class="hint state" role="status"></p>
+      <div class="row">
+        <button id="shareCopy" class="glass-button" type="button" data-i18n="copy">…</button>
+        <button id="shareVia" class="glass-button" type="button" data-i18n="shareVia">…</button>
+        <button id="shareClose" class="glass-button" type="button" data-i18n="close">…</button>
+      </div>
+    </div>
+  </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
 

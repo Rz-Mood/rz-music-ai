@@ -1,6 +1,6 @@
 "use strict";
-// منبع موسیقی: Internet Archive (آثار آزاد و قانونی برای پخش و دانلود)
-// این فایل هم داخل افزونه کروم و هم به‌صورت وب‌اپ روی گوشی کار می‌کند.
+// Rz Station — Internet Archive (free & legal music): search, play, download, share.
+// Works both as a Chrome extension page and as a phone web app.
 const $ = (id) => document.getElementById(id);
 const AUDIO_EXT = /\.(mp3|ogg|oga|opus|flac|wav|m4a|aac)(\?.*)?$/i;
 const GOOD_FORMATS = ["VBR MP3", "MP3", "128Kbps MP3", "64Kbps MP3", "Ogg Vorbis", "Flac", "WAVE", "Opus", "MPEG-4 Audio"];
@@ -9,22 +9,111 @@ const ORIGIN = "https://archive.org";
 const SITE_URL = location.protocol.startsWith("http") ? location.origin + location.pathname : "https://rz-mood.github.io/rz-music-ai/";
 const SUGGESTIONS = ["jazz", "piano", "classical", "lofi", "ambient", "rock", "blues", "folk", "guitar", "orchestra"];
 
-// ---------- ذخیره‌سازی (همه‌جا با try/catch) ----------
+// ---------- Translations ----------
+const I18N = {
+  fa: {
+    dir: "rtl", locale: "fa-IR", other: "EN", sep: "، ",
+    badgeTitle: "وضعیت اتصال", badgeDirect: "اتصال مستقیم", badgeProxy: "پروکسی فعال", badgeBad: "اتصال ناموفق",
+    searchPh: "جستجوی آهنگ، خواننده یا آلبوم…", search: "جستجو", chipsLabel: "پیشنهاد جستجو",
+    linkSummary: "🔗 پخش از لینک", linkPh: "لینک فایل صوتی یا صفحه archive.org", play: "پخش",
+    downloadAll: "دانلود همه",
+    history: "تاریخچه", clearAll: "پاک کردن همه",
+    historyEmpty: "هنوز آهنگی پخش نکرده‌اید. هر آهنگی که پخش کنید اینجا ذخیره می‌شود و می‌توانید دوباره پخش، دانلود یا برای دیگران بفرستید.",
+    settings: "تنظیمات", proxyTitle: "اتصال (پروکسی)",
+    proxyHint: "اگر archive.org روی اینترنت شما بسته است، آدرس پروکسی خودتان را وارد کنید. جستجو، پخش و دانلود از طریق آن انجام می‌شود.",
+    proxyPh: "https://music-proxy.نام‌شما.workers.dev", save: "ذخیره", testConn: "تست اتصال", remove: "حذف",
+    langTitle: "زبان", themeTitle: "رنگ برنامه", dataTitle: "داده‌ها",
+    dataHint: "تاریخچه‌ی پخش و جستجوهای اخیر فقط روی همین دستگاه ذخیره می‌شوند.",
+    clearSearches: "پاک کردن جستجوهای اخیر", clearHistory: "پاک کردن تاریخچه",
+    helpTitle: "راهنما",
+    helpHint: "منبع موسیقی Internet Archive است و فقط آثار آزاد و قانونی در آن پیدا می‌شود. اگر archive.org فقط به‌خاطر DNS بسته باشد، تغییر DNS گوشی (Private DNS روی <span dir=\"ltr\">dns.google</span>) هم ممکن است کافی باشد.",
+    prev: "قبلی", next: "بعدی", dlNow: "⬇ دانلود", shareNow: "⤴ اشتراک",
+    tabSearch: "جستجو", tabHistory: "تاریخچه", tabSettings: "تنظیمات", tabsLabel: "بخش‌ها",
+    btnPlay: "▶ پخش", btnDownload: "⬇ دانلود", btnShare: "⤴ اشتراک", removeFromHistory: "حذف از تاریخچه",
+    download: "دانلود", share: "اشتراک",
+    shareTitle: "لینک اشتراک", shareCopied: "✔ لینک کپی شد", shareCopyFail: "کپی خودکار انجام نشد. روی «کپی» بزنید یا لینک را نگه دارید و انتخاب کنید.",
+    copy: "کپی", shareVia: "ارسال با…", close: "بستن",
+    searching: "در حال جستجو…", loadingTracks: "در حال دریافت لیست آهنگ‌ها…",
+    noResults: "نتیجه‌ای پیدا نشد. این منبع فقط آثار آزاد دارد؛ مثلاً jazz یا piano را امتحان کنید.",
+    noAudio: "فایل صوتی قابل پخش در این مورد پیدا نشد.",
+    connFailed: "اتصال به archive.org برقرار نشد. اگر فیلتر است، پروکسی را تنظیم کنید.", goSettings: "تنظیمات اتصال",
+    invalidLink: "لینک نامعتبر است.",
+    unsupportedLink: "این لینک پشتیبانی نمی‌شود. فقط لینک مستقیم فایل صوتی (mp3، ogg، flac، wav، m4a) یا صفحه‌های archive.org قابل پخش و دانلود هستند.",
+    playFailed: "پخش این فایل ممکن نیست؛ دانلود را امتحان کنید.",
+    dlStarted: "دانلود شروع شد", dlProgress: "در حال دانلود…", dlOk: "دانلود شروع شد ✔", dlOpened: "لینک دانلود در تب جدید باز شد",
+    confirmDlAll: "{n} فایل دانلود شود؟", confirmClear: "همه‌ی تاریخچه پاک شود؟",
+    historyAlreadyEmpty: "تاریخچه خالی است", historyCleared: "تاریخچه پاک شد", searchesCleared: "جستجوهای اخیر پاک شد",
+    settingsSaved: "تنظیمات ذخیره شد",
+    proxySaved: "ذخیره شد. از این پس از پروکسی استفاده می‌شود.", proxyRemoved: "پروکسی حذف شد. اتصال مستقیم به archive.org.",
+    proxyTesting: "در حال تست…", proxyOk: "✔ اتصال برقرار است. برای استفاده، «ذخیره» را بزنید.",
+    proxyBadResp: "پاسخ نامعتبر بود.", proxyFail: "✘ اتصال برقرار نشد. آدرس را بررسی کنید.",
+    shareCopyShort: "کپی شد ✔"
+  },
+  en: {
+    dir: "ltr", locale: "en-US", other: "فارسی", sep: ", ",
+    badgeTitle: "Connection status", badgeDirect: "Direct", badgeProxy: "Proxy on", badgeBad: "No connection",
+    searchPh: "Search songs, artists or albums…", search: "Search", chipsLabel: "Search suggestions",
+    linkSummary: "🔗 Play from link", linkPh: "Audio file link or archive.org page", play: "Play",
+    downloadAll: "Download all",
+    history: "History", clearAll: "Clear all",
+    historyEmpty: "You haven't played anything yet. Every song you play is saved here, so you can play it again, download it or send it to others.",
+    settings: "Settings", proxyTitle: "Connection (proxy)",
+    proxyHint: "If archive.org is blocked on your network, enter your own proxy address. Search, playback and downloads will go through it.",
+    proxyPh: "https://music-proxy.yourname.workers.dev", save: "Save", testConn: "Test connection", remove: "Remove",
+    langTitle: "Language", themeTitle: "App color", dataTitle: "Data",
+    dataHint: "Play history and recent searches are stored on this device only.",
+    clearSearches: "Clear recent searches", clearHistory: "Clear history",
+    helpTitle: "Help",
+    helpHint: "Music comes from the Internet Archive, which only has free and legal works. If archive.org is blocked only by DNS, changing your phone's DNS (Private DNS set to <span dir=\"ltr\">dns.google</span>) may be enough.",
+    prev: "Previous", next: "Next", dlNow: "⬇ Download", shareNow: "⤴ Share",
+    tabSearch: "Search", tabHistory: "History", tabSettings: "Settings", tabsLabel: "Sections",
+    btnPlay: "▶ Play", btnDownload: "⬇ Download", btnShare: "⤴ Share", removeFromHistory: "Remove from history",
+    download: "Download", share: "Share",
+    shareTitle: "Share link", shareCopied: "✔ Link copied", shareCopyFail: "Automatic copy didn't work. Tap “Copy” or long-press the link to select it.",
+    copy: "Copy", shareVia: "Share via…", close: "Close",
+    searching: "Searching…", loadingTracks: "Loading tracks…",
+    noResults: "Nothing found. This source only has free works; try jazz or piano.",
+    noAudio: "No playable audio file found for this item.",
+    connFailed: "Couldn't reach archive.org. If it's blocked, set up a proxy.", goSettings: "Connection settings",
+    invalidLink: "Invalid link.",
+    unsupportedLink: "This link isn't supported. Only direct audio file links (mp3, ogg, flac, wav, m4a) and archive.org pages can be played and downloaded.",
+    playFailed: "This file can't be played. Try downloading it.",
+    dlStarted: "Download started", dlProgress: "Downloading…", dlOk: "Download started ✔", dlOpened: "Download link opened in a new tab",
+    confirmDlAll: "Download {n} files?", confirmClear: "Clear the whole history?",
+    historyAlreadyEmpty: "History is empty", historyCleared: "History cleared", searchesCleared: "Recent searches cleared",
+    settingsSaved: "Settings saved",
+    proxySaved: "Saved. The proxy will be used from now on.", proxyRemoved: "Proxy removed. Connecting directly to archive.org.",
+    proxyTesting: "Testing…", proxyOk: "✔ Connected. Press “Save” to use it.",
+    proxyBadResp: "Invalid response.", proxyFail: "✘ Couldn't connect. Check the address.",
+    shareCopyShort: "Copied ✔"
+  }
+};
+let lang = "fa";
+function t(key, vars) {
+  let s = (I18N[lang] && I18N[lang][key]) || I18N.fa[key] || key;
+  if (vars) for (const k of Object.keys(vars)) s = s.replace("{" + k + "}", vars[k]);
+  return s;
+}
+
+// ---------- Storage (always guarded) ----------
 function getRaw(k) { try { return localStorage.getItem(k) || ""; } catch { return ""; } }
 function setRaw(k, v) { try { localStorage.setItem(k, v); } catch {} }
 function getJSON(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } }
 function setJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 
-// ---------- حالت برنامه ----------
-let tracks = [];
+// ---------- State ----------
+let tracks = [];          // the playback queue
+let searchTracks = [];    // the list shown in the search tab
+let tracksTitle = "";
 let current = -1;
 let recordPlays = true;
 let playHistory = getJSON("rz-history", []);
 let recent = getJSON("rz-searches", []);
 let proxyBase = "";
+let badState = false;
 const audio = $("audio");
 
-// ---------- ابزارها ----------
+// ---------- Helpers ----------
 function sanitize(name) { return name.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120); }
 
 let toastTimer;
@@ -36,15 +125,27 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
 }
 
-function setStatus(msg, action) {
+let statusState = null;
+function setStatus(key, action) { statusState = key ? { key, action } : null; renderStatus(); }
+function renderStatus() {
   const el = $("status");
-  el.textContent = msg || "";
-  if (msg && action) {
+  el.textContent = "";
+  if (!statusState) return;
+  el.textContent = t(statusState.key);
+  if (statusState.action) {
     const b = document.createElement("button");
-    b.type = "button"; b.className = "glass-button mini"; b.textContent = action.label;
-    b.addEventListener("click", action.fn);
+    b.type = "button"; b.className = "glass-button mini"; b.textContent = t(statusState.action.labelKey);
+    b.addEventListener("click", statusState.action.fn);
     el.appendChild(b);
   }
+}
+
+let proxyState = null;
+function proxyMsg(key, cls) { proxyState = key ? { key, cls } : null; renderProxyMsg(); }
+function renderProxyMsg() {
+  const el = $("proxyMsg");
+  el.textContent = proxyState ? t(proxyState.key) : "";
+  el.dataset.state = (proxyState && proxyState.cls) || "";
 }
 
 function makeBtn(text, label, fn) {
@@ -55,7 +156,7 @@ function makeBtn(text, label, fn) {
   return b;
 }
 
-// ---------- پروکسی (برای وقتی archive.org فیلتر است) ----------
+// ---------- Proxy (for when archive.org is filtered) ----------
 function normalizeProxy(v) {
   v = (v || "").trim().replace(/\/+$/, "");
   if (!v) return "";
@@ -72,32 +173,32 @@ function viaProxy(href) {
   } catch {}
   return href;
 }
-// اگر کسی آدرس پروکسی را چسباند، به آدرس اصلی archive.org برمی‌گردانیم
 function canonical(href) {
   if (proxyBase && href.startsWith(proxyBase + "/")) return ORIGIN + href.slice(proxyBase.length);
   return href;
 }
-function trackUrl(t) { return viaProxy(t.orig); }
+function trackUrl(tr) { return viaProxy(tr.orig); }
 
-function updateBadge(state) {
+function updateBadge(bad) {
+  if (bad === true) badState = true; else if (bad === false) badState = false;
   const b = $("connBadge");
   b.classList.remove("proxy", "bad");
-  if (state === "bad") { b.classList.add("bad"); b.textContent = "اتصال ناموفق"; return; }
-  if (proxyBase) { b.classList.add("proxy"); b.textContent = "پروکسی فعال"; }
-  else b.textContent = "اتصال مستقیم";
+  if (badState) { b.classList.add("bad"); b.textContent = t("badgeBad"); return; }
+  if (proxyBase) { b.classList.add("proxy"); b.textContent = t("badgeProxy"); }
+  else b.textContent = t("badgeDirect");
 }
 
-// ---------- ناوبری بین بخش‌ها ----------
+// ---------- Views ----------
 function showView(name) {
   for (const v of ["search", "history", "settings"]) $("view-" + v).hidden = v !== name;
-  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t.dataset.view === name));
+  document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x.dataset.view === name));
   if (name === "history") renderHistory();
   window.scrollTo({ top: 0 });
 }
-document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => showView(t.dataset.view)));
+document.querySelectorAll(".tab").forEach((x) => x.addEventListener("click", () => showView(x.dataset.view)));
 $("connBadge").addEventListener("click", () => showView("settings"));
 
-// ---------- تم رنگی ----------
+// ---------- Theme ----------
 const THEMES = [
   ["purple", "#b47aff"], ["green", "#00ff9d"], ["blue", "#42a5ff"],
   ["orange", "#ff8a32"], ["pink", "#ff72b6"], ["light", "#aabaff"]
@@ -118,7 +219,34 @@ for (const [name, color] of THEMES) {
 }
 setTheme(getRaw("rz-glass-theme") || "purple");
 
-// ---------- پیشنهاد و جستجوهای اخیر ----------
+// ---------- Language ----------
+function applyLang(l) {
+  lang = I18N[l] ? l : "fa";
+  setRaw("rz-lang", lang);
+  const root = document.documentElement;
+  root.lang = lang;
+  root.dir = I18N[lang].dir;
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+  $("langBtn").textContent = I18N[lang].other;
+  $("langFa").classList.toggle("on", lang === "fa");
+  $("langEn").classList.toggle("on", lang === "en");
+  renderChips();
+  updateBadge();
+  if (!$("tracksBox").hidden) renderTrackList();
+  if (!$("view-history").hidden) renderHistory();
+  renderStatus();
+  renderProxyMsg();
+  renderShareMsg();
+}
+$("langBtn").addEventListener("click", () => applyLang(lang === "fa" ? "en" : "fa"));
+$("langFa").addEventListener("click", () => applyLang("fa"));
+$("langEn").addEventListener("click", () => applyLang("en"));
+
+// ---------- Chips: recent searches + suggestions ----------
 function renderChips() {
   const box = $("chips");
   box.innerHTML = "";
@@ -141,10 +269,10 @@ function addRecent(q) {
   renderChips();
 }
 
-// ---------- جستجو ----------
+// ---------- Search ----------
 function connectionFailed() {
-  updateBadge("bad");
-  setStatus("اتصال به archive.org برقرار نشد. اگر فیلتر است، پروکسی را تنظیم کنید.", { label: "تنظیمات اتصال", fn: () => showView("settings") });
+  updateBadge(true);
+  setStatus("connFailed", { labelKey: "goSettings", fn: () => showView("settings") });
 }
 
 async function search(query) {
@@ -152,7 +280,7 @@ async function search(query) {
   if (!query) return;
   showView("search");
   addRecent(query);
-  setStatus("در حال جستجو…");
+  setStatus("searching");
   $("results").innerHTML = "";
   $("tracksBox").hidden = true;
   const esc = query.replace(/["\\]/g, " ");
@@ -163,9 +291,9 @@ async function search(query) {
     const r = await fetch(url);
     const data = await r.json();
     const docs = (data.response && data.response.docs) || [];
-    updateBadge();
-    if (!docs.length) { setStatus("نتیجه‌ای پیدا نشد. این منبع فقط آثار آزاد دارد؛ مثلاً jazz یا piano را امتحان کنید."); return; }
-    setStatus("");
+    updateBadge(false);
+    if (!docs.length) { setStatus("noResults"); return; }
+    setStatus(null);
     renderResults(docs);
   } catch (e) {
     connectionFailed();
@@ -178,7 +306,7 @@ function renderResults(docs) {
   for (const d of docs) {
     const el = document.createElement("div");
     el.className = "item glass glass-hover fade-in";
-    const creator = Array.isArray(d.creator) ? d.creator.join("، ") : (d.creator || "");
+    const creator = Array.isArray(d.creator) ? d.creator.join(t("sep")) : (d.creator || "");
     const title = Array.isArray(d.title) ? d.title[0] : (d.title || d.identifier);
     el.innerHTML = `<img alt="" loading="lazy" src="${A("/services/img/")}${encodeURIComponent(d.identifier)}"><div><div class="t"></div><div class="a"></div></div>`;
     el.querySelector(".t").textContent = title;
@@ -188,9 +316,9 @@ function renderResults(docs) {
   }
 }
 
-// ---------- بارگذاری یک آیتم ----------
+// ---------- Load one item ----------
 async function loadItem(id, titleHint, autoplay = false) {
-  setStatus("در حال دریافت لیست آهنگ‌ها…");
+  setStatus("loadingTracks");
   try {
     const r = await fetch(A("/metadata/") + encodeURIComponent(id));
     const meta = await r.json();
@@ -211,9 +339,9 @@ async function loadItem(id, titleHint, autoplay = false) {
       orig: `${ORIGIN}/download/${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`,
       filename: f.name.split("/").pop()
     }));
-    updateBadge();
-    if (!list.length) { setStatus("فایل صوتی قابل پخش در این مورد پیدا نشد."); return; }
-    setStatus("");
+    updateBadge(false);
+    if (!list.length) { setStatus("noAudio"); return; }
+    setStatus(null);
     showTracks(album, list, autoplay);
   } catch (e) {
     connectionFailed();
@@ -223,31 +351,40 @@ async function loadItem(id, titleHint, autoplay = false) {
 function showTracks(title, list, autoplay = false) {
   showView("search");
   tracks = list;
+  searchTracks = list;
+  tracksTitle = title;
   current = -1;
   recordPlays = true;
-  $("itemTitle").textContent = title;
   $("tracksBox").hidden = false;
-  const ol = $("tracks");
-  ol.innerHTML = "";
-  list.forEach((t, i) => {
-    const li = document.createElement("li");
-    li.className = "track";
-    li.dataset.orig = t.orig;
-    const name = document.createElement("span");
-    name.className = "name";
-    name.textContent = (i + 1) + ". " + t.title;
-    name.addEventListener("click", () => play(i));
-    const fmt = document.createElement("span");
-    fmt.className = "fmt";
-    fmt.textContent = t.format || "";
-    li.append(name, fmt, makeBtn("⬇", "دانلود", () => download(t)), makeBtn("⤴", "اشتراک", () => share(t)));
-    ol.appendChild(li);
-  });
+  renderTrackList();
   $("tracksBox").scrollIntoView({ behavior: "smooth" });
   if (autoplay) play(0);
 }
 
-// ---------- پخش ----------
+function renderTrackList() {
+  $("itemTitle").textContent = tracksTitle;
+  const ol = $("tracks");
+  ol.innerHTML = "";
+  searchTracks.forEach((tr, i) => {
+    const li = document.createElement("li");
+    li.className = "track";
+    li.dataset.orig = tr.orig;
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = (i + 1) + ". " + tr.title;
+    name.addEventListener("click", () => {
+      tracks = searchTracks; recordPlays = true; play(i);
+    });
+    const fmt = document.createElement("span");
+    fmt.className = "fmt";
+    fmt.textContent = tr.format || "";
+    li.append(name, fmt, makeBtn("⬇", t("download"), () => download(tr)), makeBtn("⤴", t("share"), () => share(tr)));
+    ol.appendChild(li);
+  });
+  markActive();
+}
+
+// ---------- Playback ----------
 function markActive() {
   const o = current >= 0 && tracks[current] ? tracks[current].orig : null;
   document.querySelectorAll("[data-orig]").forEach((el) => el.classList.toggle("active", !!o && el.dataset.orig === o));
@@ -256,21 +393,21 @@ function markActive() {
 function play(i) {
   if (i < 0 || i >= tracks.length) return;
   current = i;
-  const t = tracks[i];
-  audio.src = trackUrl(t);
+  const tr = tracks[i];
+  audio.src = trackUrl(tr);
   audio.play().catch(() => {});
   $("player").hidden = false;
   document.body.classList.add("has-player");
-  $("nowPlaying").textContent = t.title;
-  $("nowAlbum").textContent = t.album || "";
+  $("nowPlaying").textContent = tr.title;
+  $("nowAlbum").textContent = tr.album || "";
   markActive();
-  if (recordPlays) addHistory(t);
+  if (recordPlays) addHistory(tr);
   if ("mediaSession" in navigator) {
-    try { navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.album || "" }); } catch {}
+    try { navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: tr.album || "" }); } catch {}
   }
 }
 audio.addEventListener("ended", () => { if (current + 1 < tracks.length) play(current + 1); });
-audio.addEventListener("error", () => { if (audio.getAttribute("src")) toast("پخش این فایل ممکن نیست؛ دانلود را امتحان کنید."); });
+audio.addEventListener("error", () => { if (audio.getAttribute("src")) toast(t("playFailed")); });
 $("next").addEventListener("click", () => play(current + 1));
 $("prev").addEventListener("click", () => play(current - 1));
 if ("mediaSession" in navigator) {
@@ -280,18 +417,18 @@ if ("mediaSession" in navigator) {
   } catch {}
 }
 
-// ---------- دانلود ----------
-async function download(t) {
-  const ext = (t.filename.match(/\.[^.]+$/) || [".mp3"])[0];
-  const base = sanitize(t.title.replace(/\.[^.]+$/, "")) || "music";
-  const url = trackUrl(t);
+// ---------- Download ----------
+async function download(tr) {
+  const ext = (tr.filename.match(/\.[^.]+$/) || [".mp3"])[0];
+  const base = sanitize(tr.title.replace(/\.[^.]+$/, "")) || "music";
+  const url = trackUrl(tr);
   if (HAS_EXT_DL) {
     chrome.downloads.download({ url, filename: "Music/" + base + ext, conflictAction: "uniquify" });
-    toast("دانلود شروع شد");
+    toast(t("dlStarted"));
     return;
   }
   try {
-    toast("در حال دانلود…");
+    toast(t("dlProgress"));
     const r = await fetch(url);
     if (!r.ok) throw new Error("HTTP " + r.status);
     const blob = await r.blob();
@@ -302,55 +439,86 @@ async function download(t) {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    toast("دانلود شروع شد ✔");
+    toast(t("dlOk"));
   } catch {
     window.open(url, "_blank", "noopener");
-    toast("لینک دانلود در تب جدید باز شد");
+    toast(t("dlOpened"));
   }
 }
 $("dlNow").addEventListener("click", () => { if (current >= 0) download(tracks[current]); });
 $("dlAll").addEventListener("click", async () => {
-  if (!tracks.length) return;
-  if (tracks.length > 15 && !confirm(tracks.length + " فایل دانلود شود؟")) return;
-  for (const t of tracks) { await download(t); await new Promise((r) => setTimeout(r, 400)); }
+  if (!searchTracks.length) return;
+  if (searchTracks.length > 15 && !confirm(t("confirmDlAll", { n: searchTracks.length }))) return;
+  for (const tr of searchTracks) { await download(tr); await new Promise((r) => setTimeout(r, 400)); }
 });
 
-// ---------- اشتراک‌گذاری ----------
-function copyText(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    return navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
-  }
-  return Promise.resolve(legacyCopy(text));
-}
+// ---------- Share: show the link and copy it automatically ----------
+let shareLink = "";
+let shareOk = null;
 function legacyCopy(text) {
   const ta = document.createElement("textarea");
-  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
   document.body.appendChild(ta); ta.select();
   let ok = false;
   try { ok = document.execCommand("copy"); } catch {}
   ta.remove();
   if (!ok) throw new Error("copy failed");
 }
-async function share(t) {
-  const link = SITE_URL + "?url=" + encodeURIComponent(t.orig);
-  if (navigator.share) {
-    try { await navigator.share({ title: t.title, text: t.title, url: link }); return; }
-    catch (e) { if (e && e.name === "AbortError") return; }
-  }
-  try { await copyText(link); toast("لینک کپی شد"); }
-  catch { window.prompt("این لینک را کپی کنید:", link); }
+function renderShareMsg() {
+  const el = $("shareMsg");
+  if (shareOk === null) { el.textContent = ""; el.dataset.state = ""; return; }
+  el.textContent = t(shareOk ? "shareCopied" : "shareCopyFail");
+  el.dataset.state = shareOk ? "ok" : "bad";
 }
+function copyShareLink() {
+  const done = (ok) => {
+    shareOk = ok;
+    renderShareMsg();
+    try { $("shareLink").focus(); $("shareLink").select(); } catch {}
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareLink).then(
+        () => done(true),
+        () => { try { legacyCopy(shareLink); done(true); } catch { done(false); } }
+      );
+    } else {
+      legacyCopy(shareLink);
+      done(true);
+    }
+  } catch { done(false); }
+}
+function share(tr) {
+  shareLink = SITE_URL + "?url=" + encodeURIComponent(tr.orig);
+  $("shareName").textContent = tr.title;
+  $("shareLink").value = shareLink;
+  shareOk = null;
+  renderShareMsg();
+  $("shareVia").hidden = !navigator.share;
+  $("shareSheet").hidden = false;
+  copyShareLink(); // runs inside the click, so the browser allows the copy
+}
+function closeShare() { $("shareSheet").hidden = true; }
 $("shareNow").addEventListener("click", () => { if (current >= 0) share(tracks[current]); });
+$("shareCopy").addEventListener("click", copyShareLink);
+$("shareClose").addEventListener("click", closeShare);
+$("shareVia").addEventListener("click", () => {
+  if (!navigator.share) return;
+  navigator.share({ title: $("shareName").textContent, url: shareLink }).catch(() => {});
+});
+$("shareSheet").addEventListener("click", (e) => { if (e.target === $("shareSheet")) closeShare(); });
+$("shareLink").addEventListener("focus", () => { try { $("shareLink").select(); } catch {} });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("shareSheet").hidden) closeShare(); });
 
-// ---------- تاریخچه ----------
-function addHistory(t) {
-  const entry = { title: t.title, album: t.album || "", format: t.format || "", orig: t.orig, filename: t.filename, ts: Date.now() };
-  playHistory = [entry, ...playHistory.filter((h) => h.orig !== t.orig)].slice(0, 100);
+// ---------- History ----------
+function addHistory(tr) {
+  const entry = { title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, ts: Date.now() };
+  playHistory = [entry, ...playHistory.filter((h) => h.orig !== tr.orig)].slice(0, 100);
   setJSON("rz-history", playHistory);
   if (!$("view-history").hidden) renderHistory();
 }
 function fmtDate(ts) {
-  try { return new Date(ts).toLocaleString("fa-IR", { dateStyle: "short", timeStyle: "short" }); } catch { return ""; }
+  try { return new Date(ts).toLocaleString(t("locale"), { dateStyle: "short", timeStyle: "short" }); } catch { return ""; }
 }
 function renderHistory() {
   const box = $("historyList");
@@ -363,18 +531,18 @@ function renderHistory() {
     row.dataset.orig = h.orig;
     const info = document.createElement("div");
     info.className = "hinfo";
-    const t = document.createElement("div"); t.className = "t"; t.textContent = h.title;
+    const ti = document.createElement("div"); ti.className = "t"; ti.textContent = h.title;
     const a = document.createElement("div"); a.className = "a";
     a.textContent = [h.album, fmtDate(h.ts)].filter(Boolean).join(" · ");
-    info.append(t, a);
+    info.append(ti, a);
     info.addEventListener("click", () => playFromHistory(i));
     const btns = document.createElement("div");
     btns.className = "hbtns";
     btns.append(
-      makeBtn("▶ پخش", "پخش", () => playFromHistory(i)),
-      makeBtn("⬇ دانلود", "دانلود", () => download(h)),
-      makeBtn("⤴ اشتراک", "اشتراک", () => share(h)),
-      makeBtn("✕", "حذف از تاریخچه", () => removeHistory(h.orig))
+      makeBtn(t("btnPlay"), t("play"), () => playFromHistory(i)),
+      makeBtn(t("btnDownload"), t("download"), () => download(h)),
+      makeBtn(t("btnShare"), t("share"), () => share(h)),
+      makeBtn("✕", t("removeFromHistory"), () => removeHistory(h.orig))
     );
     row.append(info, btns);
     box.appendChild(row);
@@ -392,12 +560,12 @@ function removeHistory(orig) {
   renderHistory();
 }
 function clearHistory() {
-  if (!playHistory.length) { toast("تاریخچه خالی است"); return; }
-  if (!confirm("همه‌ی تاریخچه پاک شود؟")) return;
+  if (!playHistory.length) { toast(t("historyAlreadyEmpty")); return; }
+  if (!confirm(t("confirmClear"))) return;
   playHistory = [];
   setJSON("rz-history", playHistory);
   renderHistory();
-  toast("تاریخچه پاک شد");
+  toast(t("historyCleared"));
 }
 $("clearHistory").addEventListener("click", clearHistory);
 $("clearHistory2").addEventListener("click", clearHistory);
@@ -405,13 +573,13 @@ $("clearSearches").addEventListener("click", () => {
   recent = [];
   setJSON("rz-searches", recent);
   renderChips();
-  toast("جستجوهای اخیر پاک شد");
+  toast(t("searchesCleared"));
 });
 
-// ---------- لینک اشتراکی / چسباندن لینک ----------
+// ---------- Shared link / pasted link ----------
 function openFromUrl(raw) {
   let u;
-  try { u = new URL(canonical(raw.trim())); } catch { setStatus("لینک نامعتبر است."); return; }
+  try { u = new URL(canonical(raw.trim())); } catch { setStatus("invalidLink"); return; }
   if (u.hostname === "archive.org" || u.hostname.endsWith(".archive.org")) {
     const m = u.pathname.match(/^\/(?:details|download)\/([^/]+)(?:\/(.+))?/);
     if (m) {
@@ -430,51 +598,45 @@ function openFromUrl(raw) {
     showTracks(name, [{ title: name.replace(/\.[^.]+$/, ""), album: u.hostname, format: "", orig: u.href, filename: name }], true);
     return;
   }
-  setStatus("این لینک پشتیبانی نمی‌شود. فقط لینک مستقیم فایل صوتی (mp3، ogg، flac، wav، m4a) یا صفحه‌های archive.org قابل پخش و دانلود هستند.");
+  setStatus("unsupportedLink");
 }
 
 $("searchForm").addEventListener("submit", (e) => { e.preventDefault(); search($("q").value); });
 $("linkForm").addEventListener("submit", (e) => { e.preventDefault(); openFromUrl($("linkInput").value); });
 
-// ---------- تنظیمات پروکسی ----------
+// ---------- Proxy settings ----------
 $("proxyInput").value = proxyBase;
-function proxyMsg(text, cls) {
-  const el = $("proxyMsg");
-  el.textContent = text;
-  el.dataset.state = cls || "";
-}
 $("proxyForm").addEventListener("submit", (e) => {
   e.preventDefault();
   proxyBase = normalizeProxy($("proxyInput").value);
   setRaw("rz-proxy", proxyBase);
   $("proxyInput").value = proxyBase;
-  updateBadge();
-  proxyMsg(proxyBase ? "ذخیره شد. از این پس از پروکسی استفاده می‌شود." : "پروکسی حذف شد. اتصال مستقیم به archive.org.");
-  toast("تنظیمات ذخیره شد");
+  updateBadge(false);
+  proxyMsg(proxyBase ? "proxySaved" : "proxyRemoved");
+  toast(t("settingsSaved"));
 });
 $("proxyClear").addEventListener("click", () => {
   proxyBase = "";
   setRaw("rz-proxy", "");
   $("proxyInput").value = "";
-  updateBadge();
-  proxyMsg("پروکسی حذف شد. اتصال مستقیم به archive.org.");
+  updateBadge(false);
+  proxyMsg("proxyRemoved");
 });
 $("proxyTest").addEventListener("click", async () => {
   const v = normalizeProxy($("proxyInput").value);
-  proxyMsg("در حال تست…");
+  proxyMsg("proxyTesting");
   try {
     const r = await fetch((v || ORIGIN) + "/advancedsearch.php?q=" + encodeURIComponent("title:test AND mediatype:audio") + "&fl[]=identifier&rows=1&output=json");
     const d = await r.json();
-    if (d && d.response) { proxyMsg("✔ اتصال برقرار است. برای استفاده، «ذخیره» را بزنید.", "ok"); }
-    else proxyMsg("پاسخ نامعتبر بود.", "bad");
+    if (d && d.response) proxyMsg("proxyOk", "ok");
+    else proxyMsg("proxyBadResp", "bad");
   } catch {
-    proxyMsg("✘ اتصال برقرار نشد. آدرس را بررسی کنید.", "bad");
+    proxyMsg("proxyFail", "bad");
   }
 });
 
-// ---------- شروع ----------
-renderChips();
-updateBadge();
+// ---------- Start ----------
+applyLang(getRaw("rz-lang") || "fa");
 const params = new URLSearchParams(location.search);
 let shared = params.get("url");
 if (!shared) {
@@ -483,7 +645,7 @@ if (!shared) {
 }
 if (shared) { $("linkInput").value = shared; $("linkBox").open = true; openFromUrl(shared); }
 
-// ---------- نصب به‌عنوان اپ روی گوشی (PWA) ----------
+// ---------- Install as a phone app (PWA) ----------
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }

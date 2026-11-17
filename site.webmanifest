@@ -1,9 +1,9 @@
 {
-  "name": "پلیر موزیک",
-  "short_name": "موزیک",
-  "description": "جستجو، پخش و دانلود موزیک‌های آزاد",
+  "name": "Rz Station",
+  "short_name": "Rz Station",
+  "description": "Search, play and download free music",
   "lang": "fa",
-  "dir": "rtl",
+  "dir": "auto",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
