@@ -13,33 +13,30 @@
 </head>
 <body>
   <div class="wrap">
-    <header class="top glass fade-in">
-      <div class="top-row">
-        <h1>🎵 پلیر موزیک</h1>
-        <div class="themes" id="themes" aria-label="تم رنگی"></div>
-      </div>
-      <form id="searchForm">
-        <input id="q" type="search" placeholder="جستجوی آهنگ، خواننده یا آلبوم…" autocomplete="off">
-        <button class="glass-button" type="submit">جستجو</button>
-      </form>
-      <form id="linkForm">
-        <input id="linkInput" type="url" dir="ltr" placeholder="لینک آهنگ یا صفحه archive.org را بچسبانید">
-        <button class="glass-button" type="submit">پخش لینک</button>
-      </form>
-      <details id="settings" class="settings">
-        <summary>⚙ تنظیمات اتصال (پروکسی)</summary>
-        <p class="hint">اگر archive.org روی اینترنت شما بسته است، آدرس پروکسی خودتان را اینجا وارد کنید. مثال: <span dir="ltr">https://music-proxy.نام‌شما.workers.dev</span></p>
-        <form id="proxyForm">
-          <input id="proxyInput" type="url" dir="ltr" placeholder="https://…workers.dev">
-          <button class="glass-button" type="submit">ذخیره</button>
-          <button class="glass-button" id="proxyTest" type="button">تست</button>
-        </form>
-        <p id="proxyMsg" class="hint"></p>
-      </details>
+    <header class="appbar glass fade-in">
+      <h1>🎵 پلیر موزیک</h1>
+      <button id="connBadge" class="badge" type="button" title="وضعیت اتصال">اتصال مستقیم</button>
     </header>
 
-    <main>
+    <!-- ======== جستجو ======== -->
+    <section id="view-search" class="view">
+      <form id="searchForm" class="searchbar glass fade-in">
+        <input id="q" type="search" placeholder="جستجوی آهنگ، خواننده یا آلبوم…" autocomplete="off" enterkeyhint="search">
+        <button class="glass-button go" type="submit">جستجو</button>
+      </form>
+      <div id="chips" class="chips" aria-label="پیشنهاد جستجو"></div>
+
+      <details class="linkbox glass" id="linkBox">
+        <summary>🔗 پخش از لینک</summary>
+        <form id="linkForm">
+          <input id="linkInput" type="text" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" dir="ltr" placeholder="لینک فایل صوتی یا صفحه archive.org">
+          <button class="glass-button" type="submit">پخش</button>
+        </form>
+      </details>
+
+      <p id="status" role="status"></p>
       <section id="results" aria-live="polite"></section>
+
       <section id="tracksBox" class="glass fade-in" hidden>
         <div class="tracks-head">
           <h2 id="itemTitle"></h2>
@@ -47,19 +44,79 @@
         </div>
         <ol id="tracks"></ol>
       </section>
-      <p id="status"></p>
-    </main>
+    </section>
+
+    <!-- ======== تاریخچه ======== -->
+    <section id="view-history" class="view" hidden>
+      <div class="head">
+        <h2>تاریخچه</h2>
+        <button id="clearHistory" class="glass-button mini" type="button">پاک کردن همه</button>
+      </div>
+      <p id="historyEmpty" class="empty glass">هنوز آهنگی پخش نکرده‌اید. هر آهنگی که پخش کنید اینجا ذخیره می‌شود و می‌توانید دوباره پخش، دانلود یا برای دیگران بفرستید.</p>
+      <div id="historyList"></div>
+    </section>
+
+    <!-- ======== تنظیمات ======== -->
+    <section id="view-settings" class="view" hidden>
+      <div class="head"><h2>تنظیمات</h2></div>
+
+      <div class="card glass">
+        <h3>اتصال (پروکسی)</h3>
+        <p class="hint">اگر archive.org روی اینترنت شما بسته است، آدرس پروکسی خودتان را وارد کنید. جستجو، پخش و دانلود از طریق آن انجام می‌شود.</p>
+        <form id="proxyForm">
+          <input id="proxyInput" type="text" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" dir="ltr" placeholder="https://music-proxy.نام‌شما.workers.dev">
+          <div class="row">
+            <button class="glass-button" type="submit">ذخیره</button>
+            <button class="glass-button" id="proxyTest" type="button">تست اتصال</button>
+            <button class="glass-button" id="proxyClear" type="button">حذف</button>
+          </div>
+        </form>
+        <p id="proxyMsg" class="hint state"></p>
+      </div>
+
+      <div class="card glass">
+        <h3>رنگ برنامه</h3>
+        <div class="themes" id="themes" aria-label="تم رنگی"></div>
+      </div>
+
+      <div class="card glass">
+        <h3>داده‌ها</h3>
+        <p class="hint">تاریخچه‌ی پخش و جستجوهای اخیر فقط روی همین دستگاه ذخیره می‌شوند.</p>
+        <div class="row">
+          <button class="glass-button" id="clearSearches" type="button">پاک کردن جستجوهای اخیر</button>
+          <button class="glass-button" id="clearHistory2" type="button">پاک کردن تاریخچه</button>
+        </div>
+      </div>
+
+      <div class="card glass">
+        <h3>راهنما</h3>
+        <p class="hint">منبع موسیقی Internet Archive است و فقط آثار آزاد و قانونی در آن پیدا می‌شود. اگر archive.org فقط به‌خاطر DNS بسته باشد، تغییر DNS گوشی (Private DNS روی <span dir="ltr">dns.google</span>) هم ممکن است کافی باشد.</p>
+      </div>
+    </section>
   </div>
 
-  <footer id="player" class="glass fade-in glow" hidden>
-    <div id="nowPlaying">—</div>
+  <!-- ======== پلیر ======== -->
+  <footer id="player" class="glass glow" hidden>
+    <div class="np">
+      <div id="nowPlaying">—</div>
+      <div id="nowAlbum"></div>
+    </div>
     <audio id="audio" controls preload="none"></audio>
     <div class="ctrl">
-      <button id="prev" class="glass-button" type="button">⏮ قبلی</button>
+      <button id="prev" class="glass-button" type="button" aria-label="قبلی">⏮</button>
       <button id="dlNow" class="glass-button" type="button">⬇ دانلود</button>
-      <button id="next" class="glass-button" type="button">بعدی ⏭</button>
+      <button id="shareNow" class="glass-button" type="button">⤴ اشتراک</button>
+      <button id="next" class="glass-button" type="button" aria-label="بعدی">⏭</button>
     </div>
   </footer>
+
+  <nav id="tabs" class="glass" aria-label="بخش‌ها">
+    <button type="button" data-view="search" class="tab on"><span class="ic">🔎</span><span>جستجو</span></button>
+    <button type="button" data-view="history" class="tab"><span class="ic">🕘</span><span>تاریخچه</span></button>
+    <button type="button" data-view="settings" class="tab"><span class="ic">⚙</span><span>تنظیمات</span></button>
+  </nav>
+
+  <div id="toast" role="status" aria-live="polite"></div>
 
   <script src="app.js"></script>
 </body>
