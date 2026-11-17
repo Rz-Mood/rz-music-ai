@@ -172,7 +172,9 @@ function normalizeProxy(v) {
   if (!/^https?:\/\//i.test(v)) v = "https://" + v;
   return v;
 }
-proxyBase = normalizeProxy(getRaw("rz-proxy"));
+// When the site itself is hosted on Cloudflare Pages (…pages.dev), it ships its own /proxy route.
+const SAME_SITE_PROXY = /\.pages\.dev$/.test(location.hostname) ? location.origin + "/proxy" : "";
+proxyBase = normalizeProxy(getRaw("rz-proxy")) || SAME_SITE_PROXY;
 function A(path) { return (proxyBase || ORIGIN) + path; }
 function viaProxy(href) {
   if (!proxyBase) return href;
@@ -692,17 +694,18 @@ $("linkForm").addEventListener("submit", (e) => { e.preventDefault(); openFromUr
 $("proxyInput").value = proxyBase;
 $("proxyForm").addEventListener("submit", (e) => {
   e.preventDefault();
-  proxyBase = normalizeProxy($("proxyInput").value);
-  setRaw("rz-proxy", proxyBase);
+  const typed = normalizeProxy($("proxyInput").value);
+  setRaw("rz-proxy", typed);
+  proxyBase = typed || SAME_SITE_PROXY;
   $("proxyInput").value = proxyBase;
   updateBadge(false);
   proxyMsg(proxyBase ? "proxySaved" : "proxyRemoved");
   toast(t("settingsSaved"));
 });
 $("proxyClear").addEventListener("click", () => {
-  proxyBase = "";
   setRaw("rz-proxy", "");
-  $("proxyInput").value = "";
+  proxyBase = SAME_SITE_PROXY;
+  $("proxyInput").value = proxyBase;
   updateBadge(false);
   proxyMsg("proxyRemoved");
 });
