@@ -1,0 +1,181 @@
+/* ==========================================
+   RZ GLASS UI ENGINE
+   Modern Glassmorphism + Smooth Animations
+========================================== */
+
+/* ---------- COLOR THEMES ---------- */
+
+:root {
+  /* Default: Dark Glass */
+  --glass-bg: rgba(20, 22, 30, 0.48);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+  --glass-shadow: rgba(0, 0, 0, 0.25);
+  --accent: #8b7cff;
+  --text-color: #ffffff;
+  --blur: 22px;
+}
+
+/* PURPLE THEME */
+[data-theme="purple"] {
+  --glass-bg: rgba(65, 35, 110, 0.35);
+  --glass-border: rgba(190, 150, 255, 0.28);
+  --accent: #b47aff;
+}
+
+/* CYBER GREEN THEME */
+[data-theme="green"] {
+  --glass-bg: rgba(10, 65, 45, 0.38);
+  --glass-border: rgba(80, 255, 170, 0.25);
+  --accent: #00ff9d;
+}
+
+/* OCEAN BLUE THEME */
+[data-theme="blue"] {
+  --glass-bg: rgba(15, 45, 90, 0.40);
+  --glass-border: rgba(100, 180, 255, 0.30);
+  --accent: #42a5ff;
+}
+
+/* FIRE ORANGE THEME */
+[data-theme="orange"] {
+  --glass-bg: rgba(90, 35, 10, 0.40);
+  --glass-border: rgba(255, 150, 60, 0.30);
+  --accent: #ff8a32;
+}
+
+/* ROSE PINK THEME */
+[data-theme="pink"] {
+  --glass-bg: rgba(90, 25, 55, 0.38);
+  --glass-border: rgba(255, 150, 200, 0.28);
+  --accent: #ff72b6;
+}
+
+/* ICE WHITE THEME */
+[data-theme="light"] {
+  --glass-bg: rgba(255, 255, 255, 0.48);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --accent: #647cff;
+  --text-color: #171923;
+  --glass-shadow: rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- GLOBAL GLASS ---------- */
+
+.glass {
+  background: var(--glass-bg);
+
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+
+  border: 1px solid var(--glass-border);
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 8px 32px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-highlight);
+
+  color: var(--text-color);
+
+  transition:
+    background 0.6s ease,
+    border-color 0.6s ease,
+    box-shadow 0.6s ease,
+    transform 0.5s cubic-bezier(.2,.8,.2,1);
+}
+
+/* ---------- SOFT FADE ---------- */
+
+.fade-in {
+  animation: fadeIn 0.8s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* ---------- GLASS HOVER ---------- */
+
+.glass-hover:hover {
+  transform: translateY(-4px) scale(1.01);
+
+  border-color: var(--accent);
+
+  box-shadow:
+    0 15px 40px var(--glass-shadow),
+    0 0 20px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* ---------- BUTTON ---------- */
+
+.glass-button {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+
+  border-radius: 14px;
+  padding: 12px 22px;
+
+  color: var(--text-color);
+  cursor: pointer;
+
+  transition: all 0.4s cubic-bezier(.2,.8,.2,1);
+}
+
+.glass-button:hover {
+  background: var(--accent);
+  transform: scale(1.04);
+  box-shadow: 0 0 25px var(--accent);
+}
+
+.glass-button:active {
+  transform: scale(0.96);
+}
+
+/* ---------- SMOOTH FLOAT ---------- */
+
+.float {
+  animation: floating 5s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- SOFT GLOW ---------- */
+
+.glow {
+  box-shadow:
+    0 0 15px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0 40px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* ---------- REDUCED MOTION ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

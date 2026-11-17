@@ -1,31 +1,227 @@
-// RZ Mood v5 — MusicAtlas requests are routed through the Cloudflare Worker.
-const WORKER_BASE_URL = 'https://rz-mood-api.999999a9aa9a.workers.dev';
-const $=id=>document.getElementById(id);
-const form=$('searchForm'), queryInput=$('query'), artistInput=$('artist'), resultsEl=$('results'), messageEl=$('message'), titleEl=$('resultsTitle'), countEl=$('resultCount'), button=$('searchButton');
-let lang=localStorage.getItem('rz_mood_lang')||'fa';
-const copy={fa:{search:'کشف آهنگ‌ها',loading:'در حال جست‌وجو...',empty:'نتیجه‌ای پیدا نشد',try:'عبارت دیگری را امتحان کن.',artists:'هنرمندان مشابه',tracks:'آهنگ‌های مشابه',start:'از یک آهنگ شروع کن',startHint:'نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس.',searching:'در حال کشف موسیقی...',searchingHint:'در حال دریافت پیشنهادها از MusicAtlas',failed:'جست‌وجو کامل نشد',key:'اتصال امن تنظیم نشده است؛ تنظیمات Cloudflare Worker را بررسی کن.',invalid:'کلید API معتبر نیست یا دسترسی آن فعال نشده است.',quota:'سهمیه درخواست تمام شده است. بعداً دوباره امتحان کن.',network:'ارتباط با سرور RZ Mood برقرار نشد. آدرس Worker و اتصال اینترنت را بررسی کن.',copy:'کپی نام',copied:'کپی شد',spotify:'Spotify',open:'بازکردن منبع',share:'اشتراک',download:'دانلود',noDownload:'دانلود مستقیم برای این آهنگ ارائه نشده؛ از صفحه منبع استفاده کن.'},en:{search:'Discover music',loading:'Searching...',empty:'No results found',try:'Try another search.',artists:'Similar artists',tracks:'Similar tracks',start:'Start with a song',startHint:'Enter your favorite song or artist above.',searching:'Discovering music...',searchingHint:'Fetching recommendations from MusicAtlas',failed:'Search failed',key:'Secure connection is not configured. Check the Cloudflare Worker settings.',invalid:'API key is invalid or not enabled.',quota:'Request quota reached. Try again later.',network:'Could not connect to RZ Mood server. Check the Worker URL and connection.',copy:'Copy title',copied:'Copied',spotify:'Spotify',open:'Open source',share:'Share',download:'Download',noDownload:'No direct download is provided for this track. Use its source page.'}};
-function t(k){return copy[lang][k]||k}
-function applyLanguage(){document.documentElement.lang=lang;document.documentElement.dir=lang==='fa'?'rtl':'ltr';$('langToggle').textContent=lang==='fa'?'EN':'فا';document.querySelectorAll('[data-fa][data-en]').forEach(el=>el.innerHTML=el.dataset[lang]);button.innerHTML=`${t('search')} <span>↗</span>`;queryInput.placeholder=lang==='fa'?'نام آهنگ یا خواننده؛ مثلاً Blinding Lights':'Song or artist, e.g. Blinding Lights';artistInput.placeholder=lang==='fa'?'مثلاً The Weeknd':'e.g. The Weeknd';}
-$('langToggle').addEventListener('click',()=>{lang=lang==='fa'?'en':'fa';localStorage.setItem('rz_mood_lang',lang);applyLanguage();});
-const theme=$('themeSelect');theme.value=localStorage.getItem('rz_mood_theme')||'rz';document.documentElement.dataset.theme=theme.value;theme.addEventListener('change',()=>{document.documentElement.dataset.theme=theme.value;localStorage.setItem('rz_mood_theme',theme.value);});
-function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function safeUrl(v){try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:null;}catch{return null;}}
-function spotifySearch(track,artist){return 'https://open.spotify.com/search/'+encodeURIComponent(`${track} ${artist}`);}
-function showMessage(title,detail,symbol='♫'){messageEl.classList.remove('hidden');messageEl.innerHTML=`<div class="empty-icon">${symbol}</div><strong>${esc(title)}</strong><span>${esc(detail)}</span>`;}
-async function shareTrack(title,url){const payload={title:'RZ Mood',text:title,url};if(navigator.share){try{await navigator.share(payload);return;}catch(e){if(e.name==='AbortError')return;}}try{await navigator.clipboard.writeText(url);alert(lang==='fa'?'لینک کپی شد.':'Link copied.');}catch{prompt('Copy link:',url);}}
-function renderTracks(items,kind='tracks'){
- resultsEl.innerHTML='';if(!items.length){showMessage(t('empty'),t('try'));countEl.textContent='';return;}
- messageEl.classList.add('hidden');countEl.textContent=`${items.length} ${kind==='artists'?'ARTISTS':'TRACKS'}`;
- items.forEach(item=>{const name=item.title||item.name||'Unknown',artist=item.artist||(kind==='artists'?(lang==='fa'?'هنرمند مشابه':'Similar artist'):'Unknown artist');const source=safeUrl(item.url||item.external_url||item.link);const download=safeUrl(item.download_url||item.audio_url);const spotify=spotifySearch(kind==='artists'?'':name,kind==='artists'?name:artist);const openUrl=source||spotify;const card=document.createElement('article');card.className='track glass-inner';
- card.innerHTML=`<div class="track-art">${kind==='artists'?'♬':'♫'}</div><div class="track-info"><div class="track-title" title="${esc(name)}">${esc(name)}</div><div class="track-artist">${esc(artist)}</div></div><div class="track-actions"><a class="spotify-link" href="${spotify}" target="_blank" rel="noopener">${t('spotify')} ↗</a><a class="source-link" href="${openUrl}" target="_blank" rel="noopener">${t('open')} ↗</a><button type="button" class="share-btn">${t('share')}</button><a class="download-link ${download?'':'disabled'}" ${download?`href="${download}" download target="_blank" rel="noopener"`:'aria-disabled="true"'}>${t('download')} ↓</a><button type="button" class="copy-btn" title="${t('copy')}">⧉</button></div>`;
- card.querySelector('.share-btn').addEventListener('click',()=>shareTrack(`${name} - ${artist}`,openUrl));card.querySelector('.copy-btn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(`${name} - ${artist}`);card.querySelector('.copy-btn').textContent='✓';}catch{showMessage(t('failed'),t('copy'));}});if(!download)card.querySelector('.download-link').addEventListener('click',e=>{e.preventDefault();alert(t('noDownload'));});resultsEl.appendChild(card);
- });
+"use strict";
+// منبع موسیقی: Internet Archive (آثار آزاد و قانونی برای پخش و دانلود)
+// این فایل هم داخل افزونه کروم و هم به‌صورت وب‌اپ روی گوشی کار می‌کند.
+const $ = (id) => document.getElementById(id);
+const AUDIO_EXT = /\.(mp3|ogg|oga|opus|flac|wav|m4a|aac)(\?.*)?$/i;
+const GOOD_FORMATS = ["VBR MP3", "MP3", "128Kbps MP3", "64Kbps MP3", "Ogg Vorbis", "Flac", "WAVE", "Opus", "MPEG-4 Audio"];
+const HAS_EXT_DL = typeof chrome !== "undefined" && chrome.downloads && chrome.downloads.download;
+
+let tracks = [];
+let current = -1;
+const audio = $("audio");
+
+function setStatus(msg) { $("status").textContent = msg || ""; }
+function sanitize(name) { return name.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120); }
+
+// ---------- تم رنگی ----------
+const THEMES = [
+  ["purple", "#b47aff"], ["green", "#00ff9d"], ["blue", "#42a5ff"],
+  ["orange", "#ff8a32"], ["pink", "#ff72b6"], ["light", "#aabaff"]
+];
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  try { localStorage.setItem("rz-glass-theme", theme); } catch {}
+  document.querySelectorAll(".dot").forEach((d) => d.classList.toggle("on", d.dataset.t === theme));
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = theme === "light" ? "#eef1fb" : "#0b0c12";
 }
-async function musicAtlas(endpoint,payload){
- let response;try{response=await fetch(`${WORKER_BASE_URL}/${endpoint}`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});}catch{throw new Error(t('network'));}
- let data={};try{data=await response.json();}catch{}
- if(!response.ok){if([401,403].includes(response.status))throw new Error(t('invalid'));if(response.status===429)throw new Error(t('quota'));throw new Error(data.error||data.message||`RZ Mood API (${response.status})`);}return data;
+for (const [name, color] of THEMES) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "dot"; b.dataset.t = name; b.title = name;
+  b.style.background = color;
+  b.addEventListener("click", () => setTheme(name));
+  $("themes").appendChild(b);
 }
-form.addEventListener('submit',async e=>{e.preventDefault();const query=queryInput.value.trim(),artist=artistInput.value.trim();if(!query)return;button.disabled=true;button.textContent=t('loading');resultsEl.innerHTML='';countEl.textContent='';titleEl.textContent=query;showMessage(t('searching'),t('searchingHint'),'◌');try{if(artist){const data=await musicAtlas('similar_tracks',{artist,track:query});const tracks=Array.isArray(data.matches)?data.matches:[];if(!tracks.length&&data.in_catalog===false)throw new Error(data.message||t('empty'));titleEl.textContent=`${t('tracks')}: ${query}`;renderTracks(tracks,'tracks');}else{const data=await musicAtlas('similar_artists',{artist:query});const artists=Array.isArray(data.artists)?data.artists.map(a=>({name:a.name||a.artist||'Unknown',artist:t('artists')})):[];titleEl.textContent=`${t('artists')}: ${query}`;renderTracks(artists,'artists');}}catch(err){showMessage(t('failed'),err.message||'Unknown error','!');}finally{button.disabled=false;button.innerHTML=`${t('search')} <span>↗</span>`;}});
-applyLanguage();
-if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.warn));
+let saved = null;
+try { saved = localStorage.getItem("rz-glass-theme"); } catch {}
+setTheme(saved || "purple");
+
+// ---------- جستجو ----------
+async function search(query) {
+  query = query.trim();
+  if (!query) return;
+  setStatus("در حال جستجو…");
+  $("results").innerHTML = "";
+  $("tracksBox").hidden = true;
+  const esc = query.replace(/["\\]/g, " ");
+  const q = `(title:("${esc}") OR creator:("${esc}")) AND mediatype:audio`;
+  const url = "https://archive.org/advancedsearch.php?q=" + encodeURIComponent(q) +
+    "&fl[]=identifier&fl[]=title&fl[]=creator&sort[]=downloads desc&rows=30&output=json";
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+    const docs = data.response.docs || [];
+    if (!docs.length) { setStatus("نتیجه‌ای پیدا نشد."); return; }
+    setStatus("");
+    renderResults(docs);
+  } catch (e) {
+    setStatus("خطا در اتصال به اینترنت یا سرور: " + e.message);
+  }
+}
+
+function renderResults(docs) {
+  const box = $("results");
+  box.innerHTML = "";
+  for (const d of docs) {
+    const el = document.createElement("div");
+    el.className = "item glass glass-hover fade-in";
+    const creator = Array.isArray(d.creator) ? d.creator.join("، ") : (d.creator || "");
+    const title = Array.isArray(d.title) ? d.title[0] : (d.title || d.identifier);
+    el.innerHTML = `<img alt="" loading="lazy" src="https://archive.org/services/img/${encodeURIComponent(d.identifier)}"><div><div class="t"></div><div class="a"></div></div>`;
+    el.querySelector(".t").textContent = title;
+    el.querySelector(".a").textContent = creator;
+    el.addEventListener("click", () => loadItem(d.identifier, title));
+    box.appendChild(el);
+  }
+}
+
+// ---------- بارگذاری یک آیتم ----------
+async function loadItem(id, titleHint, autoplay = false) {
+  setStatus("در حال دریافت لیست آهنگ‌ها…");
+  try {
+    const r = await fetch("https://archive.org/metadata/" + encodeURIComponent(id));
+    const meta = await r.json();
+    const files = (meta.files || []).filter((f) => GOOD_FORMATS.includes(f.format));
+    const byBase = new Map();
+    for (const f of files) {
+      const base = f.name.replace(/\.[^.]+$/, "");
+      const rank = GOOD_FORMATS.indexOf(f.format);
+      const prev = byBase.get(base);
+      if (!prev || rank < prev.rank) byBase.set(base, { f, rank });
+    }
+    const list = [...byBase.values()].map(({ f }) => ({
+      title: f.title || f.name.replace(/\.[^.]+$/, ""),
+      format: f.format,
+      url: `https://archive.org/download/${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`,
+      filename: f.name.split("/").pop()
+    }));
+    if (!list.length) { setStatus("فایل صوتی قابل پخش در این مورد پیدا نشد."); return; }
+    const t = (meta.metadata && meta.metadata.title) || titleHint || id;
+    setStatus("");
+    showTracks(Array.isArray(t) ? t[0] : t, list, autoplay);
+  } catch (e) {
+    setStatus("خطا: " + e.message);
+  }
+}
+
+function showTracks(title, list, autoplay = false) {
+  tracks = list;
+  current = -1;
+  $("itemTitle").textContent = title;
+  $("tracksBox").hidden = false;
+  const ol = $("tracks");
+  ol.innerHTML = "";
+  list.forEach((t, i) => {
+    const li = document.createElement("li");
+    li.className = "track";
+    li.dataset.i = i;
+    li.innerHTML = `<span class="name"></span><span class="fmt"></span><button class="glass-button" type="button" aria-label="دانلود">⬇</button>`;
+    li.querySelector(".name").textContent = (i + 1) + ". " + t.title;
+    li.querySelector(".fmt").textContent = t.format || "";
+    li.querySelector(".name").addEventListener("click", () => play(i));
+    li.querySelector("button").addEventListener("click", () => download(t));
+    ol.appendChild(li);
+  });
+  $("tracksBox").scrollIntoView({ behavior: "smooth" });
+  if (autoplay) play(0);
+}
+
+// ---------- پخش ----------
+function play(i) {
+  if (i < 0 || i >= tracks.length) return;
+  current = i;
+  const t = tracks[i];
+  audio.src = t.url;
+  audio.play().catch(() => {});
+  $("player").hidden = false;
+  $("nowPlaying").textContent = t.title;
+  document.querySelectorAll("li.track").forEach((li) => li.classList.toggle("active", Number(li.dataset.i) === i));
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: $("itemTitle").textContent });
+  }
+}
+audio.addEventListener("ended", () => { if (current + 1 < tracks.length) play(current + 1); });
+audio.addEventListener("error", () => { if (audio.src) setStatus("پخش این فایل ممکن نیست؛ می‌توانید آن را دانلود کنید."); });
+$("next").addEventListener("click", () => play(current + 1));
+$("prev").addEventListener("click", () => play(current - 1));
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("nexttrack", () => play(current + 1));
+  navigator.mediaSession.setActionHandler("previoustrack", () => play(current - 1));
+}
+
+// ---------- دانلود ----------
+async function download(t) {
+  const ext = (t.filename.match(/\.[^.]+$/) || [".mp3"])[0];
+  const base = sanitize(t.title.replace(/\.[^.]+$/, "")) || "music";
+  if (HAS_EXT_DL) {
+    chrome.downloads.download({ url: t.url, filename: "Music/" + base + ext, conflictAction: "uniquify" });
+    return;
+  }
+  // وب‌اپ / گوشی: دریافت فایل و ذخیره با نام درست
+  try {
+    setStatus("در حال دانلود: " + t.title + " …");
+    const r = await fetch(t.url);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const blob = await r.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = base + ext;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    setStatus("دانلود شروع شد ✔");
+  } catch {
+    // اگر مرورگر اجازه نداد، لینک مستقیم در تب جدید باز می‌شود
+    window.open(t.url, "_blank", "noopener");
+    setStatus("لینک دانلود در تب جدید باز شد.");
+  }
+}
+$("dlNow").addEventListener("click", () => { if (current >= 0) download(tracks[current]); });
+$("dlAll").addEventListener("click", async () => {
+  if (!tracks.length) return;
+  if (tracks.length > 15 && !confirm(tracks.length + " فایل دانلود شود؟")) return;
+  for (const t of tracks) { await download(t); await new Promise((r) => setTimeout(r, 400)); }
+});
+
+// ---------- لینک اشتراکی / چسباندن لینک ----------
+function openFromUrl(raw) {
+  let u;
+  try { u = new URL(raw.trim()); } catch { setStatus("لینک نامعتبر است."); return; }
+  if (/(^|\.)archive\.org$/.test(u.hostname)) {
+    const m = u.pathname.match(/^\/(?:details|download)\/([^/]+)(?:\/(.+))?/);
+    if (m) {
+      const id = decodeURIComponent(m[1]);
+      if (m[2] && AUDIO_EXT.test(m[2])) {
+        const name = decodeURIComponent(m[2]);
+        showTracks(id, [{ title: name.replace(/\.[^.]+$/, ""), format: "", url: u.href, filename: name.split("/").pop() }], true);
+      } else {
+        loadItem(id, id, true);
+      }
+      return;
+    }
+  }
+  if (AUDIO_EXT.test(u.pathname)) {
+    const name = decodeURIComponent(u.pathname.split("/").pop());
+    showTracks(name, [{ title: name.replace(/\.[^.]+$/, ""), format: "", url: u.href, filename: name }], true);
+    return;
+  }
+  setStatus("این لینک پشتیبانی نمی‌شود. فقط لینک مستقیم فایل صوتی (mp3، ogg، flac، wav، m4a) یا صفحه‌های archive.org قابل پخش و دانلود هستند.");
+}
+
+$("searchForm").addEventListener("submit", (e) => { e.preventDefault(); search($("q").value); });
+$("linkForm").addEventListener("submit", (e) => { e.preventDefault(); openFromUrl($("linkInput").value); });
+
+// لینک از منوی راست‌کلیک (افزونه) یا از Share گوشی (وب‌اپ نصب‌شده)
+const params = new URLSearchParams(location.search);
+let shared = params.get("url");
+if (!shared) {
+  const m = (params.get("text") || "").match(/https?:\/\/\S+/);
+  if (m) shared = m[0];
+}
+if (shared) { $("linkInput").value = shared; openFromUrl(shared); }
+
+// ---------- نصب به‌عنوان اپ روی گوشی (PWA) ----------
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}

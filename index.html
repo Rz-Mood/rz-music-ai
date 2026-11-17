@@ -1,39 +1,56 @@
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" data-theme="purple">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#090d0b"><meta name="description" content="RZ Mood — Personal music discovery">
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css"><title>RZ Mood</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0c12">
+  <title>پلیر موزیک</title>
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="icon" href="icon48.png">
+  <link rel="apple-touch-icon" href="icon192.png">
+  <link rel="stylesheet" href="glass.css">
+  <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<div class="app-shell">
-<header class="topbar glass">
-<a class="brand" href="#" aria-label="RZ Mood"><span class="brand-mark">RZ</span><span>RZ <b>Mood</b></span></a>
-<div class="top-actions"><span class="status"><i></i> MUSIC DISCOVERY</span>
-<button id="langToggle" class="utility-btn" type="button">EN</button>
-<select id="themeSelect" class="utility-select" aria-label="Theme"><option value="rz">RZ Mood</option><option value="ocean">Ocean Glass</option><option value="violet">Violet Night</option><option value="sunset">Sunset</option></select></div>
-</header>
-<main>
-<section class="hero glass">
-<p class="eyebrow">YOUR PERSONAL MUSIC RADAR</p>
-<h1 data-fa="موسیقی بعدی‌ات را <span>کشف کن.</span>" data-en="Discover your next <span>sound.</span>">موسیقی بعدی‌ات را <span>کشف کن.</span></h1>
-<p class="sub" data-fa="اسم یک آهنگ یا خواننده را وارد کن تا آهنگ‌های مشابهش را پیدا کنیم." data-en="Enter a song or artist to discover similar music.">اسم یک آهنگ یا خواننده را وارد کن تا آهنگ‌های مشابهش را پیدا کنیم.</p>
-<form id="searchForm" class="search-box glass-inner">
-<span class="search-icon">⌕</span><input id="query" type="search" placeholder="نام آهنگ یا خواننده؛ مثلاً Blinding Lights" autocomplete="off" required>
-<button type="submit" id="searchButton">کشف آهنگ‌ها <span>↗</span></button>
-<div class="artist-input-wrap"><label for="artist" data-fa="نام خواننده برای جست‌وجوی آهنگ (اختیاری)" data-en="Artist name for track search (optional)">نام خواننده برای جست‌وجوی آهنگ (اختیاری)</label>
-<input id="artist" type="text" placeholder="مثلاً The Weeknd" autocomplete="off"></div></form>
-<p class="hint" data-fa="پیشنهادها با MusicAtlas پیدا می‌شوند؛ برای گوش‌دادن، آهنگ را در Spotify باز کن." data-en="Discover with MusicAtlas; open Spotify to listen.">پیشنهادها با MusicAtlas پیدا می‌شوند؛ برای گوش‌دادن، آهنگ را در Spotify باز کن.</p>
-</section>
-<section class="results-section glass">
-<div class="section-heading"><div><p class="eyebrow">DISCOVER</p><h2 id="resultsTitle" data-fa="آماده کشف موسیقی؟" data-en="Ready to discover music?">آماده کشف موسیقی؟</h2></div><span id="resultCount" class="count"></span></div>
-<div id="message" class="message glass-inner"><div class="empty-icon">♫</div><strong data-fa="از یک آهنگ شروع کن" data-en="Start with a song">از یک آهنگ شروع کن</strong><span data-fa="نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس." data-en="Enter your favorite song or artist above.">نام آهنگ یا هنرمند موردعلاقه‌ات را بالا بنویس.</span></div>
-<div id="results" class="tracks" aria-live="polite"></div></section>
-<section class="settings glass"><details><summary data-fa="وضعیت اتصال MusicAtlas" data-en="MusicAtlas connection status">وضعیت اتصال MusicAtlas</summary><div class="settings-content">
-<p data-fa="کلید API به‌صورت Secret در Cloudflare ذخیره می‌شود و دیگر نیازی به واردکردن آن در مرورگر نیست." data-en="The API key is stored as a Cloudflare Secret. You do not need to enter it in this browser.">کلید API به‌صورت Secret در Cloudflare ذخیره می‌شود و دیگر نیازی به واردکردن آن در مرورگر نیست.</p>
-<p class="small-note" id="connectionStatus">Worker: بررسی اتصال هنگام جست‌وجو انجام می‌شود.</p>
-</div></details></section>
-</main>
-<footer><span>RZ MOOD</span><span>BUILT FOR YOUR SOUND <b>●</b></span></footer>
-</div><script src="app.js"></script></body></html>
+  <div class="wrap">
+    <header class="top glass fade-in">
+      <div class="top-row">
+        <h1>🎵 پلیر موزیک</h1>
+        <div class="themes" id="themes" aria-label="تم رنگی"></div>
+      </div>
+      <form id="searchForm">
+        <input id="q" type="search" placeholder="جستجوی آهنگ، خواننده یا آلبوم…" autocomplete="off">
+        <button class="glass-button" type="submit">جستجو</button>
+      </form>
+      <form id="linkForm">
+        <input id="linkInput" type="url" dir="ltr" placeholder="لینک آهنگ یا صفحه archive.org را بچسبانید">
+        <button class="glass-button" type="submit">پخش لینک</button>
+      </form>
+    </header>
+
+    <main>
+      <section id="results" aria-live="polite"></section>
+      <section id="tracksBox" class="glass fade-in" hidden>
+        <div class="tracks-head">
+          <h2 id="itemTitle"></h2>
+          <button id="dlAll" class="glass-button" type="button">دانلود همه</button>
+        </div>
+        <ol id="tracks"></ol>
+      </section>
+      <p id="status"></p>
+    </main>
+  </div>
+
+  <footer id="player" class="glass fade-in glow" hidden>
+    <div id="nowPlaying">—</div>
+    <audio id="audio" controls preload="none"></audio>
+    <div class="ctrl">
+      <button id="prev" class="glass-button" type="button">⏮ قبلی</button>
+      <button id="dlNow" class="glass-button" type="button">⬇ دانلود</button>
+      <button id="next" class="glass-button" type="button">بعدی ⏭</button>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
