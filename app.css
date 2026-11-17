@@ -205,3 +205,11 @@ html[data-theme="light"] .sheet-box { background: rgba(255,255,255,.85); }
 
 .glass-button.on { background: var(--accent); border-color: transparent; color: #fff; }
 .badge { white-space: nowrap; }
+
+/* ---------- Favorites / hearts ---------- */
+.heart { font-size: 17px; line-height: 1; min-width: 44px; }
+.heart.liked { color: #ff5c8a; border-color: #ff5c8a; text-shadow: 0 0 12px rgba(255, 92, 138, .55); }
+.ctrl .heart { flex: 0 0 auto; padding: 8px 12px; }
+.ctrl .glass-button { min-width: 0; }
+li.track .heart { min-width: 0; padding: 6px 10px; }
+.tab .ic { font-size: 17px; }

@@ -47,7 +47,11 @@ const I18N = {
     proxySaved: "ذخیره شد. از این پس از پروکسی استفاده می‌شود.", proxyRemoved: "پروکسی حذف شد. اتصال مستقیم به archive.org.",
     proxyTesting: "در حال تست…", proxyOk: "✔ اتصال برقرار است. برای استفاده، «ذخیره» را بزنید.",
     proxyBadResp: "پاسخ نامعتبر بود.", proxyFail: "✘ اتصال برقرار نشد. آدرس را بررسی کنید.",
-    shareCopyShort: "کپی شد ✔"
+    shareCopyShort: "کپی شد ✔",
+    tabFavorites: "علاقه‌مندی‌ها", favorites: "علاقه‌مندی‌ها", playAll: "پخش همه",
+    favsEmpty: "هنوز آهنگی را لایک نکرده‌اید. روی ♡ کنار هر آهنگ بزنید تا اینجا ذخیره شود.",
+    favorite: "افزودن به علاقه‌مندی‌ها", unfavorite: "حذف از علاقه‌مندی‌ها",
+    favAdded: "به علاقه‌مندی‌ها اضافه شد ❤", favRemoved: "از علاقه‌مندی‌ها حذف شد"
   },
   en: {
     dir: "ltr", locale: "en-US", other: "فارسی", sep: ", ",
@@ -85,7 +89,11 @@ const I18N = {
     proxySaved: "Saved. The proxy will be used from now on.", proxyRemoved: "Proxy removed. Connecting directly to archive.org.",
     proxyTesting: "Testing…", proxyOk: "✔ Connected. Press “Save” to use it.",
     proxyBadResp: "Invalid response.", proxyFail: "✘ Couldn't connect. Check the address.",
-    shareCopyShort: "Copied ✔"
+    shareCopyShort: "Copied ✔",
+    tabFavorites: "Favorites", favorites: "Favorites", playAll: "Play all",
+    favsEmpty: "You haven't liked any songs yet. Tap ♡ next to a song to save it here.",
+    favorite: "Add to favorites", unfavorite: "Remove from favorites",
+    favAdded: "Added to favorites ❤", favRemoved: "Removed from favorites"
   }
 };
 let lang = "fa";
@@ -109,6 +117,7 @@ let current = -1;
 let recordPlays = true;
 let playHistory = getJSON("rz-history", []);
 let recent = getJSON("rz-searches", []);
+let favs = getJSON("rz-favs", []);
 let proxyBase = "";
 let badState = false;
 const audio = $("audio");
@@ -190,9 +199,10 @@ function updateBadge(bad) {
 
 // ---------- Views ----------
 function showView(name) {
-  for (const v of ["search", "history", "settings"]) $("view-" + v).hidden = v !== name;
+  for (const v of ["search", "favorites", "history", "settings"]) $("view-" + v).hidden = v !== name;
   document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x.dataset.view === name));
   if (name === "history") renderHistory();
+  if (name === "favorites") renderFavs();
   window.scrollTo({ top: 0 });
 }
 document.querySelectorAll(".tab").forEach((x) => x.addEventListener("click", () => showView(x.dataset.view)));
@@ -238,6 +248,8 @@ function applyLang(l) {
   updateBadge();
   if (!$("tracksBox").hidden) renderTrackList();
   if (!$("view-history").hidden) renderHistory();
+  if (!$("view-favorites").hidden) renderFavs();
+  updateHearts();
   renderStatus();
   renderProxyMsg();
   renderShareMsg();
@@ -311,7 +323,7 @@ function renderResults(docs) {
     el.innerHTML = `<img alt="" loading="lazy" src="${A("/services/img/")}${encodeURIComponent(d.identifier)}"><div><div class="t"></div><div class="a"></div></div>`;
     el.querySelector(".t").textContent = title;
     el.querySelector(".a").textContent = creator;
-    el.addEventListener("click", () => loadItem(d.identifier, title));
+    el.addEventListener("click", () => loadItem(d.identifier, title, true));
     box.appendChild(el);
   }
 }
@@ -378,7 +390,7 @@ function renderTrackList() {
     const fmt = document.createElement("span");
     fmt.className = "fmt";
     fmt.textContent = tr.format || "";
-    li.append(name, fmt, makeBtn("⬇", t("download"), () => download(tr)), makeBtn("⤴", t("share"), () => share(tr)));
+    li.append(name, fmt, makeHeart(tr), makeBtn("⬇", t("download"), () => download(tr)), makeBtn("⤴", t("share"), () => share(tr)));
     ol.appendChild(li);
   });
   markActive();
@@ -401,6 +413,7 @@ function play(i) {
   $("nowPlaying").textContent = tr.title;
   $("nowAlbum").textContent = tr.album || "";
   markActive();
+  updateHearts();
   if (recordPlays) addHistory(tr);
   if ("mediaSession" in navigator) {
     try { navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: tr.album || "" }); } catch {}
@@ -540,6 +553,7 @@ function renderHistory() {
     btns.className = "hbtns";
     btns.append(
       makeBtn(t("btnPlay"), t("play"), () => playFromHistory(i)),
+      makeHeart(h),
       makeBtn(t("btnDownload"), t("download"), () => download(h)),
       makeBtn(t("btnShare"), t("share"), () => share(h)),
       makeBtn("✕", t("removeFromHistory"), () => removeHistory(h.orig))
@@ -575,6 +589,76 @@ $("clearSearches").addEventListener("click", () => {
   renderChips();
   toast(t("searchesCleared"));
 });
+
+// ---------- Favorites ----------
+function isFav(orig) { return favs.some((f) => f.orig === orig); }
+function setHeartState(b, on) {
+  b.textContent = on ? "❤" : "♡";
+  b.classList.toggle("liked", on);
+  const label = t(on ? "unfavorite" : "favorite");
+  b.setAttribute("aria-label", label);
+  b.title = label;
+  b.setAttribute("aria-pressed", on ? "true" : "false");
+}
+function makeHeart(tr) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "glass-button heart"; b.dataset.fav = tr.orig;
+  b.addEventListener("click", (e) => { e.stopPropagation(); toggleFav(tr); });
+  setHeartState(b, isFav(tr.orig));
+  return b;
+}
+function toggleFav(tr) {
+  if (isFav(tr.orig)) {
+    favs = favs.filter((f) => f.orig !== tr.orig);
+    toast(t("favRemoved"));
+  } else {
+    favs = [{ title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, ts: Date.now() }, ...favs].slice(0, 500);
+    toast(t("favAdded"));
+  }
+  setJSON("rz-favs", favs);
+  updateHearts();
+  if (!$("view-favorites").hidden) renderFavs();
+}
+function updateHearts() {
+  document.querySelectorAll("[data-fav]").forEach((b) => setHeartState(b, isFav(b.dataset.fav)));
+  const o = current >= 0 && tracks[current] ? tracks[current].orig : null;
+  setHeartState($("favNow"), !!o && isFav(o));
+}
+function renderFavs() {
+  const box = $("favsList");
+  box.innerHTML = "";
+  $("favsEmpty").hidden = favs.length > 0;
+  $("playAllFavs").hidden = favs.length === 0;
+  favs.forEach((f, i) => {
+    const row = document.createElement("div");
+    row.className = "hrow glass fade-in";
+    row.dataset.orig = f.orig;
+    const info = document.createElement("div");
+    info.className = "hinfo";
+    const ti = document.createElement("div"); ti.className = "t"; ti.textContent = f.title;
+    const a = document.createElement("div"); a.className = "a"; a.textContent = f.album || "";
+    info.append(ti, a);
+    info.addEventListener("click", () => playFromFavs(i));
+    const btns = document.createElement("div");
+    btns.className = "hbtns";
+    btns.append(
+      makeBtn(t("btnPlay"), t("play"), () => playFromFavs(i)),
+      makeHeart(f),
+      makeBtn(t("btnDownload"), t("download"), () => download(f)),
+      makeBtn(t("btnShare"), t("share"), () => share(f))
+    );
+    row.append(info, btns);
+    box.appendChild(row);
+  });
+  markActive();
+}
+function playFromFavs(i) {
+  tracks = favs.map((f) => ({ ...f }));
+  recordPlays = true;
+  play(i);
+}
+$("favNow").addEventListener("click", () => { if (current >= 0 && tracks[current]) toggleFav(tracks[current]); });
+$("playAllFavs").addEventListener("click", () => playFromFavs(0));
 
 // ---------- Shared link / pasted link ----------
 function openFromUrl(raw) {

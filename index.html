@@ -8,8 +8,8 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="icon" href="icon48.png">
   <link rel="apple-touch-icon" href="icon192.png">
-  <link rel="stylesheet" href="glass.css?v=4">
-  <link rel="stylesheet" href="app.css?v=4">
+  <link rel="stylesheet" href="glass.css?v=5">
+  <link rel="stylesheet" href="app.css?v=5">
 </head>
 <body>
   <div class="wrap">
@@ -61,6 +61,16 @@
         </div>
         <ol id="tracks"></ol>
       </section>
+    </section>
+
+    <!-- ======== Favorites ======== -->
+    <section id="view-favorites" class="view" hidden>
+      <div class="head">
+        <h2 data-i18n="favorites">…</h2>
+        <button id="playAllFavs" class="glass-button mini" type="button" data-i18n="playAll">…</button>
+      </div>
+      <p id="favsEmpty" class="empty glass" data-i18n="favsEmpty">…</p>
+      <div id="favsList"></div>
     </section>
 
     <!-- ======== History ======== -->
@@ -129,6 +139,7 @@
     <audio id="audio" controls preload="none"></audio>
     <div class="ctrl">
       <button id="prev" class="glass-button" type="button" data-i18n-aria="prev">⏮</button>
+      <button id="favNow" class="glass-button heart" type="button">♡</button>
       <button id="dlNow" class="glass-button" type="button" data-i18n="dlNow">…</button>
       <button id="shareNow" class="glass-button" type="button" data-i18n="shareNow">…</button>
       <button id="next" class="glass-button" type="button" data-i18n-aria="next">⏭</button>
@@ -137,6 +148,7 @@
 
   <nav id="tabs" class="glass" data-i18n-aria="tabsLabel">
     <button type="button" data-view="search" class="tab on"><span class="ic">🔎</span><span data-i18n="tabSearch">…</span></button>
+    <button type="button" data-view="favorites" class="tab"><span class="ic">❤</span><span data-i18n="tabFavorites">…</span></button>
     <button type="button" data-view="history" class="tab"><span class="ic">🕘</span><span data-i18n="tabHistory">…</span></button>
     <button type="button" data-view="settings" class="tab"><span class="ic">⚙</span><span data-i18n="tabSettings">…</span></button>
   </nav>
@@ -158,6 +170,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
