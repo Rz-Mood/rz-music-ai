@@ -10,6 +10,29 @@ let tracks = [];
 let current = -1;
 const audio = $("audio");
 
+// ---------- پروکسی (برای وقتی archive.org فیلتر است) ----------
+const ORIGIN = "https://archive.org";
+let proxyBase = "";
+try { proxyBase = localStorage.getItem("rz-proxy") || ""; } catch {}
+function normalizeProxy(v) {
+  v = (v || "").trim().replace(/\/+$/, "");
+  if (!v) return "";
+  if (!/^https?:\/\//i.test(v)) v = "https://" + v;
+  return v;
+}
+proxyBase = normalizeProxy(proxyBase);
+// آدرس کامل برای یک مسیر archive.org (با پروکسی یا مستقیم)
+function A(path) { return (proxyBase || ORIGIN) + path; }
+// یک لینک کامل archive.org را به آدرس پروکسی تبدیل می‌کند
+function viaProxy(href) {
+  if (!proxyBase) return href;
+  try {
+    const u = new URL(href);
+    if (/(^|\.)archive\.org$/.test(u.hostname)) return proxyBase + u.pathname + u.search;
+  } catch {}
+  return href;
+}
+
 function setStatus(msg) { $("status").textContent = msg || ""; }
 function sanitize(name) { return name.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120); }
 
@@ -45,7 +68,7 @@ async function search(query) {
   $("tracksBox").hidden = true;
   const esc = query.replace(/["\\]/g, " ");
   const q = `(title:("${esc}") OR creator:("${esc}")) AND mediatype:audio`;
-  const url = "https://archive.org/advancedsearch.php?q=" + encodeURIComponent(q) +
+  const url = A("/advancedsearch.php?q=") + encodeURIComponent(q) +
     "&fl[]=identifier&fl[]=title&fl[]=creator&sort[]=downloads desc&rows=30&output=json";
   try {
     const r = await fetch(url);
@@ -55,7 +78,9 @@ async function search(query) {
     setStatus("");
     renderResults(docs);
   } catch (e) {
-    setStatus("خطا در اتصال به اینترنت یا سرور: " + e.message);
+    setStatus("اتصال به archive.org برقرار نشد. اگر فیلتر است، آدرس پروکسی را در «تنظیمات» بالای صفحه وارد کنید.");
+    const det = document.getElementById("settings");
+    if (det && !proxyBase) det.open = true;
   }
 }
 
@@ -67,7 +92,7 @@ function renderResults(docs) {
     el.className = "item glass glass-hover fade-in";
     const creator = Array.isArray(d.creator) ? d.creator.join("، ") : (d.creator || "");
     const title = Array.isArray(d.title) ? d.title[0] : (d.title || d.identifier);
-    el.innerHTML = `<img alt="" loading="lazy" src="https://archive.org/services/img/${encodeURIComponent(d.identifier)}"><div><div class="t"></div><div class="a"></div></div>`;
+    el.innerHTML = `<img alt="" loading="lazy" src="${A("/services/img/")}${encodeURIComponent(d.identifier)}"><div><div class="t"></div><div class="a"></div></div>`;
     el.querySelector(".t").textContent = title;
     el.querySelector(".a").textContent = creator;
     el.addEventListener("click", () => loadItem(d.identifier, title));
@@ -79,7 +104,7 @@ function renderResults(docs) {
 async function loadItem(id, titleHint, autoplay = false) {
   setStatus("در حال دریافت لیست آهنگ‌ها…");
   try {
-    const r = await fetch("https://archive.org/metadata/" + encodeURIComponent(id));
+    const r = await fetch(A("/metadata/") + encodeURIComponent(id));
     const meta = await r.json();
     const files = (meta.files || []).filter((f) => GOOD_FORMATS.includes(f.format));
     const byBase = new Map();
@@ -92,7 +117,7 @@ async function loadItem(id, titleHint, autoplay = false) {
     const list = [...byBase.values()].map(({ f }) => ({
       title: f.title || f.name.replace(/\.[^.]+$/, ""),
       format: f.format,
-      url: `https://archive.org/download/${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`,
+      url: `${A("/download/")}${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`,
       filename: f.name.split("/").pop()
     }));
     if (!list.length) { setStatus("فایل صوتی قابل پخش در این مورد پیدا نشد."); return; }
@@ -194,7 +219,7 @@ function openFromUrl(raw) {
       const id = decodeURIComponent(m[1]);
       if (m[2] && AUDIO_EXT.test(m[2])) {
         const name = decodeURIComponent(m[2]);
-        showTracks(id, [{ title: name.replace(/\.[^.]+$/, ""), format: "", url: u.href, filename: name.split("/").pop() }], true);
+        showTracks(id, [{ title: name.replace(/\.[^.]+$/, ""), format: "", url: viaProxy(u.href), filename: name.split("/").pop() }], true);
       } else {
         loadItem(id, id, true);
       }
@@ -220,6 +245,27 @@ if (!shared) {
   if (m) shared = m[0];
 }
 if (shared) { $("linkInput").value = shared; openFromUrl(shared); }
+
+// ---------- تنظیمات پروکسی ----------
+$("proxyInput").value = proxyBase;
+$("proxyForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  proxyBase = normalizeProxy($("proxyInput").value);
+  try { localStorage.setItem("rz-proxy", proxyBase); } catch {}
+  $("proxyInput").value = proxyBase;
+  $("proxyMsg").textContent = proxyBase ? "ذخیره شد. از این پس از پروکسی استفاده می‌شود." : "پروکسی حذف شد. اتصال مستقیم به archive.org.";
+});
+$("proxyTest").addEventListener("click", async () => {
+  const v = normalizeProxy($("proxyInput").value);
+  $("proxyMsg").textContent = "در حال تست…";
+  try {
+    const r = await fetch((v || ORIGIN) + "/advancedsearch.php?q=" + encodeURIComponent("title:test AND mediatype:audio") + "&fl[]=identifier&rows=1&output=json");
+    const d = await r.json();
+    $("proxyMsg").textContent = d && d.response ? "✔ اتصال برقرار است." : "پاسخ نامعتبر بود.";
+  } catch (err) {
+    $("proxyMsg").textContent = "✘ اتصال برقرار نشد. آدرس را بررسی کنید.";
+  }
+});
 
 // ---------- نصب به‌عنوان اپ روی گوشی (PWA) ----------
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {

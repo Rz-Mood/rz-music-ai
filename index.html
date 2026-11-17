@@ -26,6 +26,16 @@
         <input id="linkInput" type="url" dir="ltr" placeholder="لینک آهنگ یا صفحه archive.org را بچسبانید">
         <button class="glass-button" type="submit">پخش لینک</button>
       </form>
+      <details id="settings" class="settings">
+        <summary>⚙ تنظیمات اتصال (پروکسی)</summary>
+        <p class="hint">اگر archive.org روی اینترنت شما بسته است، آدرس پروکسی خودتان را اینجا وارد کنید. مثال: <span dir="ltr">https://music-proxy.نام‌شما.workers.dev</span></p>
+        <form id="proxyForm">
+          <input id="proxyInput" type="url" dir="ltr" placeholder="https://…workers.dev">
+          <button class="glass-button" type="submit">ذخیره</button>
+          <button class="glass-button" id="proxyTest" type="button">تست</button>
+        </form>
+        <p id="proxyMsg" class="hint"></p>
+      </details>
     </header>
 
     <main>
