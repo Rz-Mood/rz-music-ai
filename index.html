@@ -8,8 +8,8 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="icon" href="icon48.png">
   <link rel="apple-touch-icon" href="icon192.png">
-  <link rel="stylesheet" href="glass.css?v=6">
-  <link rel="stylesheet" href="app.css?v=6">
+  <link rel="stylesheet" href="glass.css?v=7">
+  <link rel="stylesheet" href="app.css?v=7">
 </head>
 <body>
   <div class="wrap">
@@ -61,6 +61,42 @@
         </div>
         <ol id="tracks"></ol>
       </section>
+    </section>
+
+    <!-- ======== Radio ======== -->
+    <section id="view-radio" class="view" hidden>
+      <div class="head"><h2 data-i18n="radio">…</h2></div>
+
+      <div class="card glass">
+        <div class="switch-row">
+          <h3 data-i18n="radioSwitchLabel">…</h3>
+          <button id="radioSwitch" class="switch" type="button" role="switch" aria-checked="false" data-i18n-aria="radioSwitchLabel"></button>
+        </div>
+        <p class="hint" data-i18n="radioHint">…</p>
+      </div>
+
+      <div class="card glass">
+        <h3 data-i18n="radioStyleTitle">…</h3>
+        <div id="radioNow" class="radio-now"></div>
+        <div id="radioTags" class="chips"></div>
+        <p id="radioMode" class="hint"></p>
+        <div class="row">
+          <button id="radioNextBtn" class="glass-button" type="button" data-i18n="radioNextBtn">…</button>
+          <button id="radioAutoBtn" class="glass-button" type="button" data-i18n="radioAutoBtn" hidden>…</button>
+        </div>
+        <p id="radioStatus" class="hint state" role="status"></p>
+      </div>
+
+      <div class="card glass">
+        <h3 data-i18n="radioStations">…</h3>
+        <div id="radioStations" class="chips"></div>
+      </div>
+
+      <div class="card glass">
+        <h3 data-i18n="radioRecent">…</h3>
+        <p id="radioPicksEmpty" class="hint" data-i18n="radioPicksEmpty">…</p>
+        <div id="radioPicks"></div>
+      </div>
     </section>
 
     <!-- ======== Favorites ======== -->
@@ -132,9 +168,12 @@
 
   <!-- ======== Player ======== -->
   <footer id="player" class="glass glow" hidden>
-    <div class="np">
-      <div id="nowPlaying">—</div>
-      <div id="nowAlbum"></div>
+    <div class="np-row">
+      <div class="np">
+        <div id="nowPlaying">—</div>
+        <div id="nowAlbum"></div>
+      </div>
+      <button id="radioToggle" class="glass-button mini radio-toggle" type="button" aria-pressed="false" data-i18n-title="radioToggleTitle" data-i18n-aria="radioToggleTitle">📻</button>
     </div>
     <audio id="audio" controls preload="none"></audio>
     <div class="ctrl">
@@ -148,6 +187,7 @@
 
   <nav id="tabs" class="glass" data-i18n-aria="tabsLabel">
     <button type="button" data-view="search" class="tab on"><span class="ic">🔎</span><span data-i18n="tabSearch">…</span></button>
+    <button type="button" data-view="radio" class="tab"><span class="ic">📻</span><span data-i18n="tabRadio">…</span></button>
     <button type="button" data-view="favorites" class="tab"><span class="ic">❤</span><span data-i18n="tabFavorites">…</span></button>
     <button type="button" data-view="history" class="tab"><span class="ic">🕘</span><span data-i18n="tabHistory">…</span></button>
     <button type="button" data-view="settings" class="tab"><span class="ic">⚙</span><span data-i18n="tabSettings">…</span></button>
@@ -170,6 +210,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

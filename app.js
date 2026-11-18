@@ -51,7 +51,18 @@ const I18N = {
     tabFavorites: "علاقه‌مندی‌ها", favorites: "علاقه‌مندی‌ها", playAll: "پخش همه",
     favsEmpty: "هنوز آهنگی را لایک نکرده‌اید. روی ♡ کنار هر آهنگ بزنید تا اینجا ذخیره شود.",
     favorite: "افزودن به علاقه‌مندی‌ها", unfavorite: "حذف از علاقه‌مندی‌ها",
-    favAdded: "به علاقه‌مندی‌ها اضافه شد ❤", favRemoved: "از علاقه‌مندی‌ها حذف شد"
+    favAdded: "به علاقه‌مندی‌ها اضافه شد ❤", favRemoved: "از علاقه‌مندی‌ها حذف شد",
+    tabRadio: "رادیو", radio: "رادیو", radioSwitchLabel: "آهنگ بعدی بر اساس سبک", radioToggleTitle: "رادیو: آهنگ بعدی بر اساس سبک",
+    radioHint: "وقتی روشن باشد، بعد از تمام شدن آهنگ (یا با زدن «بعدی») یک آهنگ با سبک مشابه آهنگ فعلی از Internet Archive انتخاب و پخش می‌شود.",
+    radioStyleTitle: "سبک آهنگ فعلی", radioNoTrack: "هنوز آهنگی پخش نشده است. یک آهنگ پخش کنید یا از ایستگاه‌ها شروع کنید.",
+    radioLoadingTags: "در حال تشخیص سبک…", radioNoTags: "برای این آهنگ سبکی ثبت نشده. از ایستگاه‌ها یک سبک انتخاب کنید.",
+    radioModeAuto: "حالت خودکار: آهنگ بعدی با سبک همین آهنگ انتخاب می‌شود.",
+    radioModeManual: "سبک ثابت: {tag}. آهنگ‌های بعدی از همین سبک انتخاب می‌شوند.",
+    radioNextBtn: "⏭ آهنگ مشابه بعدی", radioAutoBtn: "🎯 حالت خودکار",
+    radioStations: "ایستگاه‌ها (شروع با یک سبک)", radioRecent: "آخرین پیشنهادهای رادیو", radioPicksEmpty: "هنوز پیشنهادی نیست.",
+    radioSearching: "در حال پیدا کردن آهنگ مشابه…", radioNoStyle: "سبک آهنگ مشخص نیست. یک ایستگاه انتخاب کنید.",
+    radioNoResult: "آهنگ مشابهی پیدا نشد. سبک دیگری را امتحان کنید.", radioOn: "رادیو روشن شد 📻", radioOff: "رادیو خاموش شد",
+    radioFail: "پیدا کردن آهنگ مشابه ناموفق بود. اتصال را بررسی کنید.", radioUseStyle: "سبک ثابت شد: {tag}"
   },
   en: {
     dir: "ltr", locale: "en-US", other: "فارسی", sep: ", ",
@@ -93,7 +104,18 @@ const I18N = {
     tabFavorites: "Favorites", favorites: "Favorites", playAll: "Play all",
     favsEmpty: "You haven't liked any songs yet. Tap ♡ next to a song to save it here.",
     favorite: "Add to favorites", unfavorite: "Remove from favorites",
-    favAdded: "Added to favorites ❤", favRemoved: "Removed from favorites"
+    favAdded: "Added to favorites ❤", favRemoved: "Removed from favorites",
+    tabRadio: "Radio", radio: "Radio", radioSwitchLabel: "Next song by style", radioToggleTitle: "Radio: next song by style",
+    radioHint: "When on, after a song ends (or when you press “Next”) a song with a similar style to the current one is picked from the Internet Archive and played.",
+    radioStyleTitle: "Style of the current song", radioNoTrack: "Nothing is playing yet. Play a song or start from a station.",
+    radioLoadingTags: "Detecting style…", radioNoTags: "No style is listed for this song. Pick one from the stations.",
+    radioModeAuto: "Auto mode: the next song follows the style of this one.",
+    radioModeManual: "Fixed style: {tag}. Next songs will come from this style.",
+    radioNextBtn: "⏭ Next similar song", radioAutoBtn: "🎯 Auto mode",
+    radioStations: "Stations (start from a style)", radioRecent: "Recent radio picks", radioPicksEmpty: "No picks yet.",
+    radioSearching: "Finding a similar song…", radioNoStyle: "The style is unknown. Pick a station.",
+    radioNoResult: "No similar song found. Try another style.", radioOn: "Radio on 📻", radioOff: "Radio off",
+    radioFail: "Couldn't find a similar song. Check your connection.", radioUseStyle: "Style fixed: {tag}"
   }
 };
 let lang = "fa";
@@ -118,6 +140,8 @@ let recordPlays = true;
 let playHistory = getJSON("rz-history", []);
 let recent = getJSON("rz-searches", []);
 let favs = getJSON("rz-favs", []);
+const radio = { on: getRaw("rz-radio") === "1", manual: "", busy: false, seen: [], picks: getJSON("rz-radio-picks", []) };
+const tagCache = new Map();
 let proxyBase = "";
 let badState = false;
 const audio = $("audio");
@@ -201,10 +225,11 @@ function updateBadge(bad) {
 
 // ---------- Views ----------
 function showView(name) {
-  for (const v of ["search", "favorites", "history", "settings"]) $("view-" + v).hidden = v !== name;
+  for (const v of ["search", "radio", "favorites", "history", "settings"]) $("view-" + v).hidden = v !== name;
   document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x.dataset.view === name));
   if (name === "history") renderHistory();
   if (name === "favorites") renderFavs();
+  if (name === "radio") renderRadio();
   window.scrollTo({ top: 0 });
 }
 document.querySelectorAll(".tab").forEach((x) => x.addEventListener("click", () => showView(x.dataset.view)));
@@ -252,6 +277,7 @@ function applyLang(l) {
   if (!$("view-history").hidden) renderHistory();
   if (!$("view-favorites").hidden) renderFavs();
   updateHearts();
+  renderRadio();
   renderStatus();
   renderProxyMsg();
   renderShareMsg();
@@ -331,28 +357,36 @@ function renderResults(docs) {
 }
 
 // ---------- Load one item ----------
+async function fetchItemTracks(id, titleHint) {
+  const r = await fetch(A("/metadata/") + encodeURIComponent(id));
+  const meta = await r.json();
+  const t0 = (meta.metadata && meta.metadata.title) || titleHint || id;
+  const album = Array.isArray(t0) ? t0[0] : t0;
+  const tags = extractTags(meta.metadata);
+  tagCache.set(id, tags);
+  const files = (meta.files || []).filter((f) => GOOD_FORMATS.includes(f.format));
+  const byBase = new Map();
+  for (const f of files) {
+    const base = f.name.replace(/\.[^.]+$/, "");
+    const rank = GOOD_FORMATS.indexOf(f.format);
+    const prev = byBase.get(base);
+    if (!prev || rank < prev.rank) byBase.set(base, { f, rank });
+  }
+  const list = [...byBase.values()].map(({ f }) => ({
+    title: f.title || f.name.replace(/\.[^.]+$/, ""),
+    album,
+    format: f.format,
+    tags,
+    orig: `${ORIGIN}/download/${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`,
+    filename: f.name.split("/").pop()
+  }));
+  return { id, album, list, tags };
+}
+
 async function loadItem(id, titleHint, autoplay = false) {
   setStatus("loadingTracks");
   try {
-    const r = await fetch(A("/metadata/") + encodeURIComponent(id));
-    const meta = await r.json();
-    const t0 = (meta.metadata && meta.metadata.title) || titleHint || id;
-    const album = Array.isArray(t0) ? t0[0] : t0;
-    const files = (meta.files || []).filter((f) => GOOD_FORMATS.includes(f.format));
-    const byBase = new Map();
-    for (const f of files) {
-      const base = f.name.replace(/\.[^.]+$/, "");
-      const rank = GOOD_FORMATS.indexOf(f.format);
-      const prev = byBase.get(base);
-      if (!prev || rank < prev.rank) byBase.set(base, { f, rank });
-    }
-    const list = [...byBase.values()].map(({ f }) => ({
-      title: f.title || f.name.replace(/\.[^.]+$/, ""),
-      album,
-      format: f.format,
-      orig: `${ORIGIN}/download/${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`,
-      filename: f.name.split("/").pop()
-    }));
+    const { album, list } = await fetchItemTracks(id, titleHint);
     updateBadge(false);
     if (!list.length) { setStatus("noAudio"); return; }
     setStatus(null);
@@ -416,18 +450,19 @@ function play(i) {
   $("nowAlbum").textContent = tr.album || "";
   markActive();
   updateHearts();
+  renderRadio();
   if (recordPlays) addHistory(tr);
   if ("mediaSession" in navigator) {
     try { navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: tr.album || "" }); } catch {}
   }
 }
-audio.addEventListener("ended", () => { if (current + 1 < tracks.length) play(current + 1); });
+audio.addEventListener("ended", () => { if (radio.on) radioNext(); else if (current + 1 < tracks.length) play(current + 1); });
 audio.addEventListener("error", () => { if (audio.getAttribute("src")) toast(t("playFailed")); });
-$("next").addEventListener("click", () => play(current + 1));
+$("next").addEventListener("click", () => goNext());
 $("prev").addEventListener("click", () => play(current - 1));
 if ("mediaSession" in navigator) {
   try {
-    navigator.mediaSession.setActionHandler("nexttrack", () => play(current + 1));
+    navigator.mediaSession.setActionHandler("nexttrack", () => goNext());
     navigator.mediaSession.setActionHandler("previoustrack", () => play(current - 1));
   } catch {}
 }
@@ -527,7 +562,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("shar
 
 // ---------- History ----------
 function addHistory(tr) {
-  const entry = { title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, ts: Date.now() };
+  const entry = { title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() };
   playHistory = [entry, ...playHistory.filter((h) => h.orig !== tr.orig)].slice(0, 100);
   setJSON("rz-history", playHistory);
   if (!$("view-history").hidden) renderHistory();
@@ -614,7 +649,7 @@ function toggleFav(tr) {
     favs = favs.filter((f) => f.orig !== tr.orig);
     toast(t("favRemoved"));
   } else {
-    favs = [{ title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, ts: Date.now() }, ...favs].slice(0, 500);
+    favs = [{ title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() }, ...favs].slice(0, 500);
     toast(t("favAdded"));
   }
   setJSON("rz-favs", favs);
@@ -661,6 +696,207 @@ function playFromFavs(i) {
 }
 $("favNow").addEventListener("click", () => { if (current >= 0 && tracks[current]) toggleFav(tracks[current]); });
 $("playAllFavs").addEventListener("click", () => playFromFavs(0));
+
+// ---------- Radio: next song by style ----------
+const STATIONS = ["jazz", "classical", "piano", "ambient", "rock", "blues", "folk", "electronic", "hip hop", "reggae", "country", "metal", "soul", "lofi"];
+const STOP_TAGS = new Set(["audio", "music", "mp3", "mp3s", "album", "albums", "song", "songs", "free", "download", "creative commons",
+  "opensource_audio", "open source audio", "sound", "recording", "recordings", "live", "archive", "internet archive", "cc", "unknown",
+  "various", "various artists", "vbr mp3", "flac", "ogg", "wav", "stream", "streaming", "podcast", "radio", "english", "untitled"]);
+
+// Reads genre/subject from the archive.org metadata and turns it into a clean list of style tags.
+function extractTags(md) {
+  if (!md) return [];
+  const raw = [].concat(md.genre || [], md.subject || []);
+  const out = [];
+  for (const item of raw) {
+    for (const part of String(item).split(/[;,]/)) {
+      const tag = part.trim().toLowerCase();
+      if (tag.length < 2 || tag.length > 28 || STOP_TAGS.has(tag) || /^\d{1,4}s?$/.test(tag)) continue;
+      if (!out.includes(tag)) out.push(tag);
+    }
+  }
+  return out.slice(0, 8);
+}
+function trackId(tr) {
+  const m = /^https:\/\/archive\.org\/download\/([^/]+)\//.exec((tr && tr.orig) || "");
+  try { return m ? decodeURIComponent(m[1]) : ""; } catch { return ""; }
+}
+function curTrack() { return current >= 0 ? tracks[current] || null : null; }
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+// Style tags for a track (fetched once from archive.org if the track doesn't carry them yet).
+async function ensureTags(tr) {
+  if (Array.isArray(tr.tags)) return tr.tags;
+  const id = trackId(tr);
+  if (!id) { tr.tags = []; return tr.tags; }
+  if (tagCache.has(id)) { tr.tags = tagCache.get(id); return tr.tags; }
+  try {
+    const r = await fetch(A("/metadata/") + encodeURIComponent(id));
+    const meta = await r.json();
+    const tags = extractTags(meta.metadata);
+    tagCache.set(id, tags);
+    tr.tags = tags;
+    return tags;
+  } catch {
+    tr.tagsFailed = true;
+    return [];
+  }
+}
+
+let radioState = null;
+function radioMsg(key, cls) { radioState = key ? { key, cls } : null; renderRadioMsg(); }
+function renderRadioMsg() {
+  const el = $("radioStatus");
+  el.textContent = radioState ? t(radioState.key) : "";
+  el.dataset.state = (radioState && radioState.cls) || "";
+}
+
+function radioQuery(tags) {
+  const parts = tags.map((tag) => { const e = tag.replace(/["\\]/g, " "); return `subject:("${e}") OR genre:("${e}")`; });
+  return `(${parts.join(" OR ")}) AND mediatype:audio`;
+}
+async function radioCandidates(tags, page) {
+  const url = A("/advancedsearch.php?q=") + encodeURIComponent(radioQuery(tags)) +
+    "&fl[]=identifier&fl[]=title&sort[]=downloads desc&rows=40&page=" + page + "&output=json";
+  const r = await fetch(url);
+  const data = await r.json();
+  return (data.response && data.response.docs) || [];
+}
+async function radioFind(seeds, curId) {
+  const sets = seeds.length > 1 ? [seeds, seeds.slice(0, 1)] : [seeds];
+  for (const set of sets) {
+    for (const page of [1 + Math.floor(Math.random() * 3), 1]) {
+      const docs = shuffle((await radioCandidates(set, page)).filter((d) => d.identifier !== curId && !radio.seen.includes(d.identifier)));
+      for (const d of docs.slice(0, 5)) {
+        const item = await fetchItemTracks(d.identifier, d.title);
+        if (item.list.length) return item;
+      }
+    }
+  }
+  return null;
+}
+async function radioSeeds() {
+  if (radio.manual) return [radio.manual];
+  const cur = curTrack();
+  if (!cur) return [];
+  return (await ensureTags(cur)).slice(0, 3);
+}
+
+// Pick and play a song with the same style as the current one.
+async function radioNext() {
+  if (radio.busy) return;
+  radio.busy = true;
+  radioMsg("radioSearching");
+  renderRadio();
+  try {
+    const seeds = await radioSeeds();
+    if (!seeds.length) { radioMsg("radioNoStyle", "bad"); return; }
+    const cur = curTrack();
+    const curId = cur ? trackId(cur) : "";
+    let found = await radioFind(seeds, curId);
+    if (!found && radio.seen.length) { radio.seen = []; found = await radioFind(seeds, curId); }
+    updateBadge(false);
+    if (!found) { radioMsg("radioNoResult", "bad"); return; }
+    radio.seen = [...radio.seen, found.id].slice(-40);
+    const idx = Math.floor(Math.random() * found.list.length);
+    tracks = found.list;
+    recordPlays = true;
+    play(idx);
+    addPick(found.list[idx]);
+    radioMsg(null);
+  } catch (e) {
+    updateBadge(true);
+    radioMsg("radioFail", "bad");
+  } finally {
+    radio.busy = false;
+    renderRadio();
+  }
+}
+function goNext() { if (radio.on) radioNext(); else play(current + 1); }
+
+function addPick(tr) {
+  radio.picks = [{ title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() },
+    ...radio.picks.filter((p) => p.orig !== tr.orig)].slice(0, 10);
+  setJSON("rz-radio-picks", radio.picks);
+}
+function setRadio(on, silent) {
+  radio.on = !!on;
+  setRaw("rz-radio", radio.on ? "1" : "0");
+  if (!silent) toast(t(radio.on ? "radioOn" : "radioOff"));
+  renderRadio();
+}
+function playPick(i) {
+  tracks = radio.picks.map((p) => ({ ...p }));
+  recordPlays = true;
+  play(i);
+}
+function chipButton(text, on, fn) {
+  const c = document.createElement("button");
+  c.type = "button"; c.className = "chip" + (on ? " on" : ""); c.textContent = text;
+  c.addEventListener("click", fn);
+  return c;
+}
+
+function renderRadio() {
+  const sw = $("radioSwitch"), tg = $("radioToggle");
+  sw.classList.toggle("on", radio.on); sw.setAttribute("aria-checked", radio.on ? "true" : "false");
+  tg.classList.toggle("on", radio.on); tg.setAttribute("aria-pressed", radio.on ? "true" : "false");
+  $("radioNextBtn").disabled = radio.busy;
+
+  const cur = curTrack();
+  const visible = !$("view-radio").hidden;
+  // Fetch the style in the background only when it is needed (radio on, or the radio tab is open).
+  if (cur && !Array.isArray(cur.tags) && !cur.tagsFailed && (radio.on || visible)) ensureTags(cur).then(renderRadio);
+  if (!visible) return;
+
+  $("radioMode").textContent = radio.manual ? t("radioModeManual", { tag: radio.manual }) : t("radioModeAuto");
+  $("radioAutoBtn").hidden = !radio.manual;
+  const now = $("radioNow"), box = $("radioTags");
+  box.innerHTML = "";
+  if (!cur) { now.textContent = t("radioNoTrack"); }
+  else if (!Array.isArray(cur.tags)) { now.textContent = cur.title; box.textContent = cur.tagsFailed ? t("radioNoTags") : t("radioLoadingTags"); }
+  else {
+    now.textContent = cur.title;
+    if (!cur.tags.length) box.textContent = t("radioNoTags");
+    cur.tags.forEach((tag) => box.appendChild(chipButton(tag, radio.manual === tag, () => {
+      radio.manual = tag; toast(t("radioUseStyle", { tag })); renderRadio();
+    })));
+  }
+  renderRadioMsg();
+
+  const list = $("radioPicks");
+  list.innerHTML = "";
+  $("radioPicksEmpty").hidden = radio.picks.length > 0;
+  radio.picks.forEach((p, i) => {
+    const row = document.createElement("div");
+    row.className = "hrow glass";
+    row.dataset.orig = p.orig;
+    const info = document.createElement("div"); info.className = "hinfo";
+    const ti = document.createElement("div"); ti.className = "t"; ti.textContent = p.title;
+    const a = document.createElement("div"); a.className = "a"; a.textContent = [p.album, (p.tags || []).slice(0, 3).join(" · ")].filter(Boolean).join(" — ");
+    info.append(ti, a);
+    info.addEventListener("click", () => playPick(i));
+    const btns = document.createElement("div"); btns.className = "hbtns";
+    btns.append(makeBtn(t("btnPlay"), t("play"), () => playPick(i)), makeHeart(p), makeBtn(t("btnShare"), t("share"), () => share(p)));
+    row.append(info, btns);
+    list.appendChild(row);
+  });
+  markActive();
+}
+
+(function initRadio() {
+  const box = $("radioStations");
+  STATIONS.forEach((st) => box.appendChild(chipButton(st, false, () => {
+    radio.manual = st; setRadio(true, true); radioNext();
+  })));
+  $("radioSwitch").addEventListener("click", () => setRadio(!radio.on));
+  $("radioToggle").addEventListener("click", () => setRadio(!radio.on));
+  $("radioNextBtn").addEventListener("click", () => radioNext());
+  $("radioAutoBtn").addEventListener("click", () => { radio.manual = ""; renderRadio(); });
+})();
 
 // ---------- Shared link / pasted link ----------
 function openFromUrl(raw) {
