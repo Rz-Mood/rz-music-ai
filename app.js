@@ -62,7 +62,23 @@ const I18N = {
     radioStations: "ایستگاه‌ها (شروع با یک سبک)", radioRecent: "آخرین پیشنهادهای رادیو", radioPicksEmpty: "هنوز پیشنهادی نیست.",
     radioSearching: "در حال پیدا کردن آهنگ مشابه…", radioNoStyle: "سبک آهنگ مشخص نیست. یک ایستگاه انتخاب کنید.",
     radioNoResult: "آهنگ مشابهی پیدا نشد. سبک دیگری را امتحان کنید.", radioOn: "رادیو روشن شد 📻", radioOff: "رادیو خاموش شد",
-    radioFail: "پیدا کردن آهنگ مشابه ناموفق بود. اتصال را بررسی کنید.", radioUseStyle: "سبک ثابت شد: {tag}"
+    radioFail: "پیدا کردن آهنگ مشابه ناموفق بود. اتصال را بررسی کنید.", radioUseStyle: "سبک ثابت شد: {tag}",
+    radioSourceTitle: "منبع رادیو",
+    srcHintJam: "Jamendo: موسیقی Creative Commons. آهنگ بعدی بر اساس شباهت واقعی (ژانر، ساز، حال‌وهوا، وکال یا بی‌کلام) انتخاب می‌شود و دقیق‌تر است.",
+    srcHintArc: "Internet Archive: انتخاب بر اساس برچسب‌های ثبت‌شده‌ی آلبوم؛ دقت کمتر.",
+    srcNoKey: "برای رادیوی دقیق‌تر، Client ID رایگان Jamendo را در تنظیمات وارد کنید. تا آن موقع از Internet Archive استفاده می‌شود.",
+    jamTitle: "سرویس رادیو (Jamendo)",
+    jamHint: "Jamendo موسیقی آزاد (Creative Commons) دارد و آهنگ مشابه را بر اساس ژانر، ساز و حال‌وهوا پیدا می‌کند. یک Client ID رایگان از <a href=\"https://devportal.jamendo.com\" target=\"_blank\" rel=\"noopener\" dir=\"ltr\">devportal.jamendo.com</a> بگیرید (ثبت‌نام، ساخت اپلیکیشن، کپی Client ID) و اینجا بچسبانید.",
+    jamPh: "Client ID",
+    jamSaved: "ذخیره شد. رادیو از Jamendo استفاده می‌کند.", jamRemoved: "کلید حذف شد. رادیو از Internet Archive استفاده می‌کند.",
+    jamBadId: "Client ID فقط شامل حروف و عدد انگلیسی است.",
+    jamTestOk: "✔ کلید معتبر است و اتصال برقرار شد. برای استفاده «ذخیره» را بزنید.",
+    jamTestFail: "✘ کلید معتبر نیست یا اتصال به Jamendo برقرار نشد.",
+    jamFail: "ارتباط با Jamendo ناموفق بود. کلید یا اتصال را بررسی کنید.",
+    jamNoDownload: "دانلود این آهنگ توسط هنرمند مجاز نشده است.",
+    jamNeedsKey: "این آهنگ از Jamendo است. برای پخش، Client ID رایگان Jamendo را در تنظیمات وارد کنید.",
+    jamNeedsKeyToast: "ابتدا Client ID را در تنظیمات وارد کنید",
+    matchPct: "تطابق {n}٪"
   },
   en: {
     dir: "ltr", locale: "en-US", other: "فارسی", sep: ", ",
@@ -115,7 +131,23 @@ const I18N = {
     radioStations: "Stations (start from a style)", radioRecent: "Recent radio picks", radioPicksEmpty: "No picks yet.",
     radioSearching: "Finding a similar song…", radioNoStyle: "The style is unknown. Pick a station.",
     radioNoResult: "No similar song found. Try another style.", radioOn: "Radio on 📻", radioOff: "Radio off",
-    radioFail: "Couldn't find a similar song. Check your connection.", radioUseStyle: "Style fixed: {tag}"
+    radioFail: "Couldn't find a similar song. Check your connection.", radioUseStyle: "Style fixed: {tag}",
+    radioSourceTitle: "Radio source",
+    srcHintJam: "Jamendo: Creative Commons music. The next song is chosen by real similarity (genre, instruments, mood, vocal or instrumental), so it is more accurate.",
+    srcHintArc: "Internet Archive: chosen from the tags listed on the album; less accurate.",
+    srcNoKey: "For a more accurate radio, enter your free Jamendo Client ID in Settings. Until then the Internet Archive is used.",
+    jamTitle: "Radio service (Jamendo)",
+    jamHint: "Jamendo has free (Creative Commons) music and finds similar songs by genre, instruments and mood. Get a free Client ID from <a href=\"https://devportal.jamendo.com\" target=\"_blank\" rel=\"noopener\" dir=\"ltr\">devportal.jamendo.com</a> (sign up, create an app, copy the Client ID) and paste it here.",
+    jamPh: "Client ID",
+    jamSaved: "Saved. The radio now uses Jamendo.", jamRemoved: "Key removed. The radio now uses the Internet Archive.",
+    jamBadId: "A Client ID only contains English letters and numbers.",
+    jamTestOk: "✔ The key is valid and Jamendo is reachable. Press “Save” to use it.",
+    jamTestFail: "✘ The key is invalid or Jamendo can't be reached.",
+    jamFail: "Couldn't reach Jamendo. Check your key or connection.",
+    jamNoDownload: "The artist doesn't allow downloading this song.",
+    jamNeedsKey: "This song is from Jamendo. To play it, enter your free Jamendo Client ID in Settings.",
+    jamNeedsKeyToast: "Enter your Client ID in Settings first",
+    matchPct: "{n}% match"
   }
 };
 let lang = "fa";
@@ -140,13 +172,21 @@ let recordPlays = true;
 let playHistory = getJSON("rz-history", []);
 let recent = getJSON("rz-searches", []);
 let favs = getJSON("rz-favs", []);
-const radio = { on: getRaw("rz-radio") === "1", manual: "", busy: false, seen: [], picks: getJSON("rz-radio-picks", []) };
+const JAM_API = "https://api.jamendo.com/v3.0";
+let jamId = /^[A-Za-z0-9]{4,40}$/.test(getRaw("rz-jamendo")) ? getRaw("rz-jamendo") : "";
+const radio = { on: getRaw("rz-radio") === "1", source: getRaw("rz-radio-source"), manual: "", busy: false, seen: [], picks: getJSON("rz-radio-picks", []) };
 const tagCache = new Map();
 let proxyBase = "";
 let badState = false;
 const audio = $("audio");
 
 // ---------- Helpers ----------
+// One compact record for history / favorites / radio picks (keeps Jamendo stream info so replay works).
+function slim(tr) {
+  const o = { title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() };
+  if (tr.src) { o.src = tr.src; o.jid = tr.jid; o.streamUrl = tr.streamUrl; o.dlUrl = tr.dlUrl; if (tr.match != null) o.match = tr.match; }
+  return o;
+}
 function sanitize(name) { return name.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120); }
 
 let toastTimer;
@@ -212,7 +252,7 @@ function canonical(href) {
   if (proxyBase && href.startsWith(proxyBase + "/")) return ORIGIN + href.slice(proxyBase.length);
   return href;
 }
-function trackUrl(tr) { return viaProxy(tr.orig); }
+function trackUrl(tr) { return tr.streamUrl || viaProxy(tr.orig); }
 
 function updateBadge(bad) {
   if (bad === true) badState = true; else if (bad === false) badState = false;
@@ -278,6 +318,8 @@ function applyLang(l) {
   if (!$("view-favorites").hidden) renderFavs();
   updateHearts();
   renderRadio();
+  renderSource();
+  renderJamMsg();
   renderStatus();
   renderProxyMsg();
   renderShareMsg();
@@ -471,7 +513,8 @@ if ("mediaSession" in navigator) {
 async function download(tr) {
   const ext = (tr.filename.match(/\.[^.]+$/) || [".mp3"])[0];
   const base = sanitize(tr.title.replace(/\.[^.]+$/, "")) || "music";
-  const url = trackUrl(tr);
+  const url = tr.src === "jamendo" ? tr.dlUrl : trackUrl(tr);
+  if (!url) { toast(t("jamNoDownload")); return; }
   if (HAS_EXT_DL) {
     chrome.downloads.download({ url, filename: "Music/" + base + ext, conflictAction: "uniquify" });
     toast(t("dlStarted"));
@@ -562,7 +605,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("shar
 
 // ---------- History ----------
 function addHistory(tr) {
-  const entry = { title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() };
+  const entry = slim(tr);
   playHistory = [entry, ...playHistory.filter((h) => h.orig !== tr.orig)].slice(0, 100);
   setJSON("rz-history", playHistory);
   if (!$("view-history").hidden) renderHistory();
@@ -649,7 +692,7 @@ function toggleFav(tr) {
     favs = favs.filter((f) => f.orig !== tr.orig);
     toast(t("favRemoved"));
   } else {
-    favs = [{ title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() }, ...favs].slice(0, 500);
+    favs = [slim(tr), ...favs].slice(0, 500);
     toast(t("favAdded"));
   }
   setJSON("rz-favs", favs);
@@ -785,12 +828,78 @@ async function radioSeeds() {
   return (await ensureTags(cur)).slice(0, 3);
 }
 
+// ----- Jamendo (free Creative Commons music; has a real "similar tracks" endpoint) -----
+function jamUrl(path, params, key) {
+  const q = ["client_id=" + encodeURIComponent(key), "format=json"];
+  for (const [k, v] of Object.entries(params || {})) {
+    // tags are joined with a literal "+" (that is how Jamendo separates several tags)
+    const val = (k === "fuzzytags" || k === "tags") ? String(v).split("+").map(encodeURIComponent).join("+") : encodeURIComponent(v);
+    q.push(k + "=" + val);
+  }
+  return JAM_API + path + "?" + q.join("&");
+}
+// Fallback for browsers/networks where a cross-origin fetch is refused: JSONP (Jamendo supports it).
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "jamcb_" + Math.random().toString(36).slice(2);
+    const el = document.createElement("script");
+    const timer = setTimeout(() => { cleanup(); reject(new Error("timeout")); }, 12000);
+    function cleanup() { clearTimeout(timer); delete window[cb]; el.remove(); }
+    window[cb] = (d) => { cleanup(); resolve(d); };
+    el.onerror = () => { cleanup(); reject(new Error("script")); };
+    el.src = url + "&callback=" + cb;
+    document.head.appendChild(el);
+  });
+}
+async function jamGet(path, params, key = jamId) {
+  if (!key) throw new Error("no key");
+  const url = jamUrl(path, params, key);
+  let data;
+  try { data = await (await fetch(url)).json(); }
+  catch { data = await jsonp(url); }
+  const hd = data && data.headers;
+  if (!hd || hd.status === "failed" || (hd.code && Number(hd.code) !== 0)) throw new Error((hd && hd.error_message) || "jamendo error");
+  return data.results || [];
+}
+function jamTag(tag) { return String(tag || "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, ""); }
+function jamTrack(r) {
+  const mi = r.musicinfo || {};
+  const tg = mi.tags && typeof mi.tags === "object" ? mi.tags : {};
+  const tags = [].concat(tg.genres || [], tg.instruments || [], tg.vartags || []).map((x) => String(x).toLowerCase()).filter((x, i, arr) => x && arr.indexOf(x) === i).slice(0, 8);
+  const allowed = r.audiodownload_allowed !== false && !!r.audiodownload;
+  return {
+    src: "jamendo", jid: String(r.id),
+    title: r.name || r.title || "Jamendo " + r.id,
+    album: [r.artist_name, r.album_name].filter(Boolean).join(" · "),
+    format: "MP3",
+    orig: "https://www.jamendo.com/track/" + r.id,
+    streamUrl: r.audio || "",
+    dlUrl: allowed ? r.audiodownload : "",
+    filename: r.id + ".mp3",
+    tags,
+    match: typeof r.score === "number" ? r.score : undefined
+  };
+}
+function radioSource() {
+  const src = radio.source || (jamId ? "jamendo" : "archive");
+  return src === "jamendo" && !jamId ? "archive" : src;
+}
+
 // Pick and play a song with the same style as the current one.
 async function radioNext() {
   if (radio.busy) return;
   radio.busy = true;
   radioMsg("radioSearching");
   renderRadio();
+  try {
+    if (radioSource() === "jamendo") await radioStepJamendo(); else await radioStepArchive();
+  } finally {
+    radio.busy = false;
+    renderRadio();
+  }
+}
+
+async function radioStepArchive() {
   try {
     const seeds = await radioSeeds();
     if (!seeds.length) { radioMsg("radioNoStyle", "bad"); return; }
@@ -810,16 +919,48 @@ async function radioNext() {
   } catch (e) {
     updateBadge(true);
     radioMsg("radioFail", "bad");
-  } finally {
-    radio.busy = false;
-    renderRadio();
+  }
+}
+
+async function radioStepJamendo() {
+  try {
+    const cur = curTrack();
+    const base = { include: "musicinfo", audioformat: "mp32", audiodlformat: "mp32" };
+    let pool = [], similar = false;
+    if (!radio.manual && cur && cur.src === "jamendo" && cur.jid) {
+      // The current song is from Jamendo: ask Jamendo for songs similar to exactly this one.
+      pool = await jamGet("/tracks/similar/", { ...base, id: cur.jid, limit: 30 });
+      similar = true;
+    } else {
+      // Start from a style (station / chosen tag / tags of the current non-Jamendo song).
+      const seeds = (await radioSeeds()).map(jamTag).filter(Boolean);
+      if (!seeds.length) { radioMsg("radioNoStyle", "bad"); return; }
+      const order = { order: "popularity_week", limit: 50 };
+      pool = await jamGet("/tracks/", { ...base, ...order, fuzzytags: seeds.slice(0, 3).join("+") });
+      if (!pool.length) pool = await jamGet("/tracks/", { ...base, ...order, search: seeds[0] });
+    }
+    const curKey = cur && cur.jid ? "j" + cur.jid : "";
+    const usable = pool.filter((r) => r && r.id != null && r.audio && "j" + r.id !== curKey);
+    let fresh = usable.filter((r) => !radio.seen.includes("j" + r.id));
+    if (!fresh.length && usable.length) { radio.seen = []; fresh = usable; }
+    if (!fresh.length) { radioMsg("radioNoResult", "bad"); return; }
+    // "Similar" results are sorted best-match first, so choose among the top few; style lists vary more.
+    const pick = fresh[Math.floor(Math.random() * Math.min(similar ? 3 : 25, fresh.length))];
+    const tr = jamTrack(pick);
+    radio.seen = [...radio.seen, "j" + pick.id].slice(-60);
+    tracks = [tr];
+    recordPlays = true;
+    play(0);
+    addPick(tr);
+    radioMsg(null);
+  } catch (e) {
+    radioMsg("jamFail", "bad");
   }
 }
 function goNext() { if (radio.on) radioNext(); else play(current + 1); }
 
 function addPick(tr) {
-  radio.picks = [{ title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() },
-    ...radio.picks.filter((p) => p.orig !== tr.orig)].slice(0, 10);
+  radio.picks = [slim(tr), ...radio.picks.filter((p) => p.orig !== tr.orig)].slice(0, 10);
   setJSON("rz-radio-picks", radio.picks);
 }
 function setRadio(on, silent) {
@@ -838,6 +979,20 @@ function chipButton(text, on, fn) {
   c.type = "button"; c.className = "chip" + (on ? " on" : ""); c.textContent = text;
   c.addEventListener("click", fn);
   return c;
+}
+
+function setSource(src) {
+  radio.source = src;
+  setRaw("rz-radio-source", src);
+  radio.seen = [];
+  renderSource();
+  renderRadio();
+}
+function renderSource() {
+  const eff = radioSource();
+  $("srcJamendo").setAttribute("aria-checked", eff === "jamendo" ? "true" : "false");
+  $("srcArchive").setAttribute("aria-checked", eff === "archive" ? "true" : "false");
+  $("radioSourceHint").textContent = !jamId ? t("srcNoKey") : t(eff === "jamendo" ? "srcHintJam" : "srcHintArc");
 }
 
 function renderRadio() {
@@ -859,7 +1014,7 @@ function renderRadio() {
   if (!cur) { now.textContent = t("radioNoTrack"); }
   else if (!Array.isArray(cur.tags)) { now.textContent = cur.title; box.textContent = cur.tagsFailed ? t("radioNoTags") : t("radioLoadingTags"); }
   else {
-    now.textContent = cur.title;
+    now.textContent = cur.title + (cur.match != null ? " · " + t("matchPct", { n: Math.round(cur.match * 100) }) : "");
     if (!cur.tags.length) box.textContent = t("radioNoTags");
     cur.tags.forEach((tag) => box.appendChild(chipButton(tag, radio.manual === tag, () => {
       radio.manual = tag; toast(t("radioUseStyle", { tag })); renderRadio();
@@ -876,7 +1031,7 @@ function renderRadio() {
     row.dataset.orig = p.orig;
     const info = document.createElement("div"); info.className = "hinfo";
     const ti = document.createElement("div"); ti.className = "t"; ti.textContent = p.title;
-    const a = document.createElement("div"); a.className = "a"; a.textContent = [p.album, (p.tags || []).slice(0, 3).join(" · ")].filter(Boolean).join(" — ");
+    const a = document.createElement("div"); a.className = "a"; a.textContent = [p.album, p.match != null ? t("matchPct", { n: Math.round(p.match * 100) }) : (p.tags || []).slice(0, 3).join(" · ")].filter(Boolean).join(" — ");
     info.append(ti, a);
     info.addEventListener("click", () => playPick(i));
     const btns = document.createElement("div"); btns.className = "hbtns";
@@ -896,12 +1051,35 @@ function renderRadio() {
   $("radioToggle").addEventListener("click", () => setRadio(!radio.on));
   $("radioNextBtn").addEventListener("click", () => radioNext());
   $("radioAutoBtn").addEventListener("click", () => { radio.manual = ""; renderRadio(); });
+  $("srcJamendo").addEventListener("click", () => {
+    if (!jamId) { toast(t("jamNeedsKeyToast")); showView("settings"); return; }
+    setSource("jamendo");
+  });
+  $("srcArchive").addEventListener("click", () => setSource("archive"));
 })();
 
 // ---------- Shared link / pasted link ----------
+async function loadJamendoTrack(id) {
+  if (!jamId) { setStatus("jamNeedsKey", { labelKey: "goSettings", fn: () => showView("settings") }); return; }
+  setStatus("loadingTracks");
+  try {
+    const res = await jamGet("/tracks/", { id, include: "musicinfo", audioformat: "mp32", audiodlformat: "mp32" });
+    if (!res.length) { setStatus("noAudio"); return; }
+    const tr = jamTrack(res[0]);
+    setStatus(null);
+    showTracks(tr.album || tr.title, [tr], true);
+  } catch (e) {
+    setStatus("jamFail");
+  }
+}
+
 function openFromUrl(raw) {
   let u;
   try { u = new URL(canonical(raw.trim())); } catch { setStatus("invalidLink"); return; }
+  if (u.hostname === "jamendo.com" || u.hostname.endsWith(".jamendo.com")) {
+    const jm = u.pathname.match(/\/track\/(\d+)/);
+    if (jm) { loadJamendoTrack(jm[1]); return; }
+  }
   if (u.hostname === "archive.org" || u.hostname.endsWith(".archive.org")) {
     const m = u.pathname.match(/^\/(?:details|download)\/([^/]+)(?:\/(.+))?/);
     if (m) {
@@ -956,6 +1134,47 @@ $("proxyTest").addEventListener("click", async () => {
   } catch {
     proxyMsg("proxyFail", "bad");
   }
+});
+
+// ---------- Jamendo key settings ----------
+let jamState = null;
+function jamMsg(key, cls) { jamState = key ? { key, cls } : null; renderJamMsg(); }
+function renderJamMsg() {
+  const el = $("jamMsg");
+  el.textContent = jamState ? t(jamState.key) : "";
+  el.dataset.state = (jamState && jamState.cls) || "";
+}
+function normalizeJam(v) { v = (v || "").trim(); return /^[A-Za-z0-9]{4,40}$/.test(v) ? v : ""; }
+$("jamInput").value = jamId;
+$("jamForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const raw = $("jamInput").value.trim();
+  const v = normalizeJam(raw);
+  if (raw && !v) { jamMsg("jamBadId", "bad"); return; }
+  jamId = v;
+  setRaw("rz-jamendo", v);
+  radio.seen = [];
+  jamMsg(v ? "jamSaved" : "jamRemoved");
+  renderSource();
+  renderRadio();
+  toast(t("settingsSaved"));
+});
+$("jamClear").addEventListener("click", () => {
+  jamId = "";
+  setRaw("rz-jamendo", "");
+  $("jamInput").value = "";
+  radio.seen = [];
+  jamMsg("jamRemoved");
+  renderSource();
+  renderRadio();
+});
+$("jamTest").addEventListener("click", async () => {
+  const raw = $("jamInput").value.trim();
+  const v = normalizeJam(raw);
+  if (!v) { jamMsg("jamBadId", "bad"); return; }
+  jamMsg("proxyTesting");
+  try { await jamGet("/tracks/", { limit: 1 }, v); jamMsg("jamTestOk", "ok"); }
+  catch { jamMsg("jamTestFail", "bad"); }
 });
 
 // ---------- Start ----------

@@ -1,7 +1,7 @@
 // Rz Station: the cache only keeps the app shell for offline use.
 // Music and the archive.org API are never cached. Files are always revalidated first,
 // so a new version of the site is picked up right away (no old/new file mix).
-const CACHE = "rz-station-v7";
+const CACHE = "rz-station-v8";
 const SHELL = ["./", "./index.html", "./glass.css", "./app.css", "./app.js", "./site.webmanifest", "./icon192.png"];
 
 self.addEventListener("install", (e) => {

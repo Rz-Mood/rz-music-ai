@@ -248,3 +248,23 @@ li.track .heart { min-width: 0; padding: 6px 10px; }
   .ctrl .glass-button { font-size: 12px; padding-inline: 2px; }
   .ctrl #prev, .ctrl #next, .ctrl #favNow { flex-basis: 40px; }
 }
+
+/* ---------- Radio source switch (Jamendo / Internet Archive) ---------- */
+.seg { display: flex; gap: 6px; padding: 4px; border: 1px solid var(--glass-border); border-radius: 14px; background: rgba(255,255,255,.06); margin-bottom: 10px; }
+.seg-btn { flex: 1; min-width: 0; padding: 10px 6px; border: 0; border-radius: 10px; background: transparent; color: var(--text-color); cursor: pointer; opacity: .75; font-size: 13px; transition: background .3s, opacity .3s; }
+.seg-btn[aria-checked="true"] { background: var(--accent); color: #fff; opacity: 1; font-weight: 700; }
+.seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.card a { color: var(--accent); }
+
+/* Narrow phones: keep the whole header (logo, status badge, language button) inside the bar */
+@media (max-width: 400px) {
+  .appbar { padding: 10px 12px; gap: 6px; }
+  .brand { gap: 8px; min-width: 0; }
+  .logo { width: 30px; height: 30px; }
+  .wordmark { gap: 4px; }
+  .wordmark b { font-size: 21px; }
+  .wordmark span { font-size: 14px; letter-spacing: .1em; }
+  .bar-actions { gap: 6px; flex: none; }
+  .badge { padding: 4px 9px; font-size: 11px; }
+  .langbtn { min-width: 38px; }
+}
