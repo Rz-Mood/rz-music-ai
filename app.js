@@ -96,7 +96,18 @@ const I18N = {
     embedNoteYt: "پخش با پخش‌کننده‌ی رسمی YouTube. با بستن این پنجره پخش متوقف می‌شود.",
     embedNoteSp: "پخش با پخش‌کننده‌ی رسمی Spotify. آهنگ کامل معمولاً فقط با ورود به حساب Spotify پخش می‌شود، وگرنه پیش‌نمایش است.",
     embedNoteSc: "پخش با پخش‌کننده‌ی رسمی SoundCloud.",
-    openSource: "باز کردن در سایت"
+    openSource: "باز کردن در سایت",
+    provLabel: "منبع جستجوی اصلی",
+    spTitle: "جستجوی Spotify",
+    spHint: "برای جستجوی نام آهنگ در Spotify باید یک‌بار با حساب Spotify خود وارد شوید (فقط برای جستجو؛ به لیست‌ها و اطلاعات حساب شما دسترسی نمی‌گیرد). پخش با پخش‌کننده‌ی رسمی Spotify انجام می‌شود.",
+    spConnect: "اتصال به Spotify", spLogout: "قطع اتصال",
+    spConnected: "✔ به Spotify وصل هستید.", spDisconnected: "هنوز وصل نشده‌اید.",
+    spNeedLogin: "برای جستجو در Spotify ابتدا در تنظیمات «اتصال به Spotify» را بزنید.",
+    spSearchFail: "جستجو در Spotify ناموفق بود. اتصال را بررسی کنید (ممکن است Spotify روی اینترنت شما بسته باشد).",
+    spRate: "تعداد درخواست‌ها به Spotify زیاد بود. کمی بعد دوباره امتحان کنید.",
+    spLoginFail: "ورود به Spotify کامل نشد. دوباره امتحان کنید.",
+    spBadHost: "ورود به Spotify فقط از آدرس اصلی سایت (rz-mood.github.io/rz-music-ai) ممکن است.",
+    spDone: "به Spotify وصل شدید ✔", spOut: "اتصال قطع شد"
   },
   en: {
     dir: "ltr", locale: "en-US", other: "فارسی", sep: ", ",
@@ -183,7 +194,18 @@ const I18N = {
     embedNoteYt: "Playing in YouTube's official player. Closing this window stops playback.",
     embedNoteSp: "Playing in Spotify's official player. Full songs usually play only when you're logged in to Spotify; otherwise it's a preview.",
     embedNoteSc: "Playing in SoundCloud's official player.",
-    openSource: "Open on site"
+    openSource: "Open on site",
+    provLabel: "Original search source",
+    spTitle: "Spotify search",
+    spHint: "To search songs on Spotify you need to log in with your Spotify account once (search only; it doesn't get access to your playlists or account details). Playback uses Spotify's official player.",
+    spConnect: "Connect to Spotify", spLogout: "Disconnect",
+    spConnected: "✔ Connected to Spotify.", spDisconnected: "Not connected yet.",
+    spNeedLogin: "To search Spotify, first tap “Connect to Spotify” in Settings.",
+    spSearchFail: "Spotify search failed. Check your connection (Spotify may be blocked on your network).",
+    spRate: "Too many requests to Spotify. Try again shortly.",
+    spLoginFail: "Spotify login didn't complete. Please try again.",
+    spBadHost: "Spotify login only works from the main site address (rz-mood.github.io/rz-music-ai).",
+    spDone: "Connected to Spotify ✔", spOut: "Disconnected"
   }
 };
 let lang = "fa";
@@ -214,6 +236,7 @@ const radio = { on: getRaw("rz-radio") === "1", source: getRaw("rz-radio-source"
 const YT_API = "https://www.googleapis.com/youtube/v3";
 let ytKey = /^[A-Za-z0-9_-]{20,80}$/.test(getRaw("rz-ytkey")) ? getRaw("rz-ytkey") : "";
 let mode = getRaw("rz-mode") === "original" ? "original" : "free";
+let prov = getRaw("rz-prov") === "spotify" ? "spotify" : "youtube";
 const tagCache = new Map();
 let proxyBase = "";
 let badState = false;
@@ -362,6 +385,7 @@ function applyLang(l) {
   renderMode();
   renderJamMsg();
   renderYtMsg();
+  renderSp();
   renderStatus();
   renderProxyMsg();
   renderShareMsg();
@@ -404,7 +428,7 @@ async function search(query) {
   if (!query) return;
   showView("search");
   addRecent(query);
-  if (mode === "original") { ytSearch(query); return; }
+  if (mode === "original") { if (prov === "spotify") spSearch(query); else ytSearch(query); return; }
   setStatus("searching");
   $("results").innerHTML = "";
   $("tracksBox").hidden = true;
@@ -1247,7 +1271,12 @@ function renderMode() {
   $("modeOriginal").setAttribute("aria-checked", mode === "original" ? "true" : "false");
   $("q").placeholder = t(mode === "original" ? "searchPhOriginal" : "searchPh");
   $("modeHint").textContent = t(mode === "original" ? "modeHintOriginal" : "modeHintFree");
+  $("provSeg").hidden = mode !== "original";
+  $("provYt").setAttribute("aria-checked", prov === "youtube" ? "true" : "false");
+  $("provSp").setAttribute("aria-checked", prov === "spotify" ? "true" : "false");
 }
+$("provYt").addEventListener("click", () => { prov = "youtube"; setRaw("rz-prov", prov); renderMode(); });
+$("provSp").addEventListener("click", () => { prov = "spotify"; setRaw("rz-prov", prov); renderMode(); });
 function setMode(m) {
   mode = m;
   setRaw("rz-mode", m);
@@ -1412,6 +1441,100 @@ $("ytTest").addEventListener("click", async () => {
     if (d && !d.error && Array.isArray(d.items)) ytMsg("ytTestOk", "ok"); else ytMsg("ytTestFail", "bad");
   } catch { ytMsg("ytTestFail", "bad"); }
 });
+
+// ---------- Spotify search (login with PKCE, no secret; playback is the official embed) ----------
+const SP_CLIENT = "89c9dbc5cb5e42c0bf8fb0e2b2805aff";
+const SP_REDIRECT = "https://rz-mood.github.io/rz-music-ai/";
+let spTok = getJSON("rz-sp", null);
+let spState = null;
+function spMsg(key, cls) { spState = key ? { key, cls } : null; renderSp(); }
+function renderSp() {
+  $("spStatus").textContent = t(spTok ? "spConnected" : "spDisconnected");
+  $("spStatus").dataset.state = spTok ? "ok" : "";
+  $("spConnect").hidden = !!spTok;
+  $("spLogout").hidden = !spTok;
+  const el = $("spMsg");
+  el.textContent = spState ? t(spState.key) : "";
+  el.dataset.state = (spState && spState.cls) || "";
+}
+function b64url(buf) {
+  let s = "";
+  new Uint8Array(buf).forEach((b) => { s += String.fromCharCode(b); });
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function randStr(n) { const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a); }
+async function spTokenPost(body) {
+  const r = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(body).toString()
+  });
+  const d = await r.json();
+  if (!r.ok || !d.access_token) throw new Error("token");
+  return d;
+}
+function spStore(d, oldRefresh) {
+  spTok = { a: d.access_token, r: d.refresh_token || oldRefresh || "", e: Date.now() + Math.max(60, (d.expires_in || 3600) - 60) * 1000 };
+  setJSON("rz-sp", spTok);
+}
+function spDrop() { spTok = null; setRaw("rz-sp", ""); renderSp(); }
+async function spLogin() {
+  const here = location.origin + location.pathname.replace(/index\.html$/, "");
+  if (here !== SP_REDIRECT || !(window.crypto && crypto.subtle)) { spMsg("spBadHost", "bad"); return; }
+  const verifier = randStr(64);
+  const challenge = b64url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
+  const state = randStr(16);
+  setRaw("rz-sp-v", verifier); setRaw("rz-sp-s", state);
+  location.href = "https://accounts.spotify.com/authorize?" + new URLSearchParams({
+    client_id: SP_CLIENT, response_type: "code", redirect_uri: SP_REDIRECT,
+    code_challenge_method: "S256", code_challenge: challenge, state
+  }).toString();
+}
+async function spToken() {
+  if (!spTok) return "";
+  if (Date.now() < spTok.e) return spTok.a;
+  if (!spTok.r) { spDrop(); return ""; }
+  try {
+    spStore(await spTokenPost({ grant_type: "refresh_token", refresh_token: spTok.r, client_id: SP_CLIENT }), spTok.r);
+    return spTok.a;
+  } catch { spDrop(); return ""; }
+}
+async function spSearch(query) {
+  const token = await spToken();
+  if (!token) { setStatus("spNeedLogin", { labelKey: "goSettings", fn: () => showView("settings") }); return; }
+  setStatus("searching");
+  try {
+    const r = await fetch("https://api.spotify.com/v1/search?type=track&limit=15&q=" + encodeURIComponent(query), { headers: { Authorization: "Bearer " + token } });
+    if (r.status === 401) { spDrop(); setStatus("spNeedLogin", { labelKey: "goSettings", fn: () => showView("settings") }); return; }
+    if (r.status === 429) { setStatus("spRate"); return; }
+    if (!r.ok) { setStatus("spSearchFail"); return; }
+    const d = await r.json();
+    const list = ((d.tracks && d.tracks.items) || []).filter((it) => it && /^[A-Za-z0-9]{10,30}$/.test(it.id || "")).map((it) => {
+      const artists = (it.artists || []).map((a) => a.name).filter(Boolean).join(t("sep"));
+      const album = [artists, it.album && it.album.name].filter(Boolean).join(" · ");
+      return embedTrack({ kind: "spotify", etype: "track", eid: it.id, orig: "https://open.spotify.com/track/" + it.id }, it.name, album);
+    });
+    if (!list.length) { setStatus("ytNoResults"); return; }
+    setStatus(null);
+    showTracks(query, list, false);
+  } catch { setStatus("spSearchFail"); }
+}
+$("spConnect").addEventListener("click", () => { spLogin().catch(() => spMsg("spLoginFail", "bad")); });
+$("spLogout").addEventListener("click", () => { spDrop(); spMsg("spOut"); });
+(async function spCallback() {
+  const p = new URLSearchParams(location.search);
+  if (!p.has("code") && !p.has("error")) return;
+  const state = getRaw("rz-sp-s"), verifier = getRaw("rz-sp-v");
+  if (!state || p.get("state") !== state) return; // not ours
+  setRaw("rz-sp-s", ""); setRaw("rz-sp-v", "");
+  try { history.replaceState(null, "", location.pathname); } catch {}
+  showView("settings");
+  if (p.has("error") || !p.get("code")) { spMsg("spLoginFail", "bad"); return; }
+  try {
+    spStore(await spTokenPost({ grant_type: "authorization_code", code: p.get("code"), redirect_uri: SP_REDIRECT, client_id: SP_CLIENT, code_verifier: verifier }));
+    setMode("original"); prov = "spotify"; setRaw("rz-prov", prov); renderMode();
+    spMsg("spDone", "ok");
+    toast(t("spDone"));
+  } catch { spMsg("spLoginFail", "bad"); }
+})();
 
 // ---------- Start ----------
 applyLang(getRaw("rz-lang") || "fa");

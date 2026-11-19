@@ -8,8 +8,8 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="icon" href="icon48.png">
   <link rel="apple-touch-icon" href="icon192.png">
-  <link rel="stylesheet" href="glass.css?v=9">
-  <link rel="stylesheet" href="app.css?v=9">
+  <link rel="stylesheet" href="glass.css?v=10">
+  <link rel="stylesheet" href="app.css?v=10">
 </head>
 <body>
   <div class="wrap">
@@ -44,6 +44,10 @@
       <div class="seg modeseg" role="radiogroup" data-i18n-aria="modeLabel">
         <button id="modeFree" class="seg-btn" type="button" role="radio" aria-checked="true" data-i18n="modeFree">…</button>
         <button id="modeOriginal" class="seg-btn" type="button" role="radio" aria-checked="false" data-i18n="modeOriginal">…</button>
+      </div>
+      <div id="provSeg" class="seg modeseg" role="radiogroup" data-i18n-aria="provLabel" hidden>
+        <button id="provYt" class="seg-btn" type="button" role="radio" aria-checked="true">YouTube</button>
+        <button id="provSp" class="seg-btn" type="button" role="radio" aria-checked="false">Spotify</button>
       </div>
       <p id="modeHint" class="hint"></p>
       <div id="chips" class="chips" data-i18n-aria="chipsLabel"></div>
@@ -180,6 +184,17 @@
       </div>
 
       <div class="card glass">
+        <h3 data-i18n="spTitle">…</h3>
+        <p class="hint" data-i18n="spHint">…</p>
+        <p id="spStatus" class="hint state"></p>
+        <div class="row">
+          <button class="glass-button" id="spConnect" type="button" data-i18n="spConnect">…</button>
+          <button class="glass-button" id="spLogout" type="button" data-i18n="spLogout" hidden>…</button>
+        </div>
+        <p id="spMsg" class="hint state"></p>
+      </div>
+
+      <div class="card glass">
         <h3 data-i18n="langTitle">…</h3>
         <div class="row">
           <button class="glass-button" id="langFa" type="button">فارسی</button>
@@ -269,6 +284,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
