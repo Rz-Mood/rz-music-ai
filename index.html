@@ -8,8 +8,8 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="icon" href="icon48.png">
   <link rel="apple-touch-icon" href="icon192.png">
-  <link rel="stylesheet" href="glass.css?v=8">
-  <link rel="stylesheet" href="app.css?v=8">
+  <link rel="stylesheet" href="glass.css?v=9">
+  <link rel="stylesheet" href="app.css?v=9">
 </head>
 <body>
   <div class="wrap">
@@ -38,9 +38,14 @@
     <!-- ======== Search ======== -->
     <section id="view-search" class="view">
       <form id="searchForm" class="searchbar glass fade-in">
-        <input id="q" type="search" data-i18n-ph="searchPh" autocomplete="off" enterkeyhint="search">
+        <input id="q" type="search" autocomplete="off" enterkeyhint="search">
         <button class="glass-button go" type="submit" data-i18n="search">…</button>
       </form>
+      <div class="seg modeseg" role="radiogroup" data-i18n-aria="modeLabel">
+        <button id="modeFree" class="seg-btn" type="button" role="radio" aria-checked="true" data-i18n="modeFree">…</button>
+        <button id="modeOriginal" class="seg-btn" type="button" role="radio" aria-checked="false" data-i18n="modeOriginal">…</button>
+      </div>
+      <p id="modeHint" class="hint"></p>
       <div id="chips" class="chips" data-i18n-aria="chipsLabel"></div>
 
       <details class="linkbox glass" id="linkBox">
@@ -161,6 +166,20 @@
       </div>
 
       <div class="card glass">
+        <h3 data-i18n="ytTitle">…</h3>
+        <p class="hint" data-i18n-html="ytHint">…</p>
+        <form id="ytForm">
+          <input id="ytInput" type="text" inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false" dir="ltr" data-i18n-ph="ytPh">
+          <div class="row">
+            <button class="glass-button" type="submit" data-i18n="save">…</button>
+            <button class="glass-button" id="ytTest" type="button" data-i18n="testConn">…</button>
+            <button class="glass-button" id="ytClear" type="button" data-i18n="remove">…</button>
+          </div>
+        </form>
+        <p id="ytMsg" class="hint state"></p>
+      </div>
+
+      <div class="card glass">
         <h3 data-i18n="langTitle">…</h3>
         <div class="row">
           <button class="glass-button" id="langFa" type="button">فارسی</button>
@@ -203,6 +222,7 @@
       <button id="prev" class="glass-button" type="button" data-i18n-aria="prev">⏮</button>
       <button id="favNow" class="glass-button heart" type="button">♡</button>
       <button id="dlNow" class="glass-button" type="button" data-i18n="dlNow">…</button>
+      <button id="embedReopen" class="glass-button" type="button" data-i18n="embedReopen" hidden>…</button>
       <button id="shareNow" class="glass-button" type="button" data-i18n="shareNow">…</button>
       <button id="next" class="glass-button" type="button" data-i18n-aria="next">⏭</button>
     </div>
@@ -215,6 +235,22 @@
     <button type="button" data-view="history" class="tab"><span class="ic">🕘</span><span data-i18n="tabHistory">…</span></button>
     <button type="button" data-view="settings" class="tab"><span class="ic">⚙</span><span data-i18n="tabSettings">…</span></button>
   </nav>
+
+  <!-- ======== Original-song player (official embed) ======== -->
+  <div id="embedSheet" class="sheet" hidden>
+    <div class="sheet-box glass" role="dialog" aria-modal="true" aria-labelledby="embedTitle">
+      <h3 id="embedTitle"></h3>
+      <div id="embedSub" class="share-name"></div>
+      <div id="embedFrame" class="embed-frame"></div>
+      <p id="embedNote" class="hint"></p>
+      <div class="row">
+        <button id="embedFav" class="glass-button heart" type="button">♡</button>
+        <button id="embedShare" class="glass-button" type="button" data-i18n="shareNow">…</button>
+        <a id="embedOpen" class="glass-button linkbtn" target="_blank" rel="noopener noreferrer" data-i18n="openSource">…</a>
+        <button id="embedClose" class="glass-button" type="button" data-i18n="close">…</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ======== Share sheet ======== -->
   <div id="shareSheet" class="sheet" hidden>
@@ -233,6 +269,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

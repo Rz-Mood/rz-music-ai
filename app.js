@@ -78,7 +78,25 @@ const I18N = {
     jamNoDownload: "دانلود این آهنگ توسط هنرمند مجاز نشده است.",
     jamNeedsKey: "این آهنگ از Jamendo است. برای پخش، Client ID رایگان Jamendo را در تنظیمات وارد کنید.",
     jamNeedsKeyToast: "ابتدا Client ID را در تنظیمات وارد کنید",
-    matchPct: "تطابق {n}٪"
+    matchPct: "تطابق {n}٪",
+    modeLabel: "نوع جستجو", modeFree: "آزاد (دانلودی)", modeOriginal: "اصلی (YouTube)",
+    searchPhOriginal: "نام آهنگ و خواننده، مثلاً Shape of You Ed Sheeran…",
+    modeHintFree: "آثار آزاد و قانونی؛ قابل پخش و دانلود.",
+    modeHintOriginal: "نسخه‌ی اصلی آهنگ‌ها با پخش‌کننده‌ی رسمی YouTube پخش می‌شود. دانلود ندارد؛ ملاک، پخش آهنگ اصلی است. لینک YouTube، Spotify و SoundCloud را هم می‌توانید در «پخش از لینک» بچسبانید.",
+    ytNeedKey: "برای جستجوی آهنگ اصلی، کلید رایگان YouTube را در تنظیمات وارد کنید. بدون کلید هم می‌توانید لینک YouTube/Spotify/SoundCloud را در «پخش از لینک» بچسبانید.",
+    ytSearchFail: "جستجو در YouTube ناموفق بود. کلید یا اتصال را بررسی کنید (ممکن است YouTube روی اینترنت شما بسته باشد).",
+    ytQuota: "سهمیه‌ی روزانه‌ی جستجوی YouTube تمام شده است. فردا دوباره امتحان کنید یا لینک آهنگ را مستقیم بچسبانید.",
+    ytNoResults: "آهنگی پیدا نشد. نام خواننده را هم اضافه کنید.",
+    ytTitle: "جستجوی آهنگ اصلی (YouTube)",
+    ytHint: "برای جستجو در حالت «اصلی» یک کلید رایگان YouTube Data API لازم است: در <a href=\"https://console.cloud.google.com\" target=\"_blank\" rel=\"noopener\" dir=\"ltr\">console.cloud.google.com</a> یک پروژه بسازید، «YouTube Data API v3» را فعال کنید، یک API key بسازید و آن را فقط برای <span dir=\"ltr\">https://rz-mood.github.io/*</span> محدود کنید، بعد اینجا بچسبانید. سهمیه‌ی رایگان محدود است (حدود صد جستجو در روز).",
+    ytPh: "API key", ytSaved: "ذخیره شد. جستجوی اصلی فعال است.", ytRemoved: "کلید حذف شد.",
+    ytBadKey: "کلید معتبر نیست (فقط حروف، عدد، - و _).",
+    ytTestOk: "✔ کلید معتبر است. برای استفاده «ذخیره» را بزنید.", ytTestFail: "✘ کلید معتبر نیست، محدودیت دامنه اشتباه است یا YouTube در دسترس نیست.",
+    embedReopen: "▶ پخش‌کننده", embedNoDownload: "آهنگ‌های اصلی دانلود ندارند؛ فقط پخش می‌شوند.",
+    embedNoteYt: "پخش با پخش‌کننده‌ی رسمی YouTube. با بستن این پنجره پخش متوقف می‌شود.",
+    embedNoteSp: "پخش با پخش‌کننده‌ی رسمی Spotify. آهنگ کامل معمولاً فقط با ورود به حساب Spotify پخش می‌شود، وگرنه پیش‌نمایش است.",
+    embedNoteSc: "پخش با پخش‌کننده‌ی رسمی SoundCloud.",
+    openSource: "باز کردن در سایت"
   },
   en: {
     dir: "ltr", locale: "en-US", other: "فارسی", sep: ", ",
@@ -147,7 +165,25 @@ const I18N = {
     jamNoDownload: "The artist doesn't allow downloading this song.",
     jamNeedsKey: "This song is from Jamendo. To play it, enter your free Jamendo Client ID in Settings.",
     jamNeedsKeyToast: "Enter your Client ID in Settings first",
-    matchPct: "{n}% match"
+    matchPct: "{n}% match",
+    modeLabel: "Search type", modeFree: "Free (downloadable)", modeOriginal: "Original (YouTube)",
+    searchPhOriginal: "Song and artist, e.g. Shape of You Ed Sheeran…",
+    modeHintFree: "Free, legal works; can be played and downloaded.",
+    modeHintOriginal: "Original recordings play in YouTube's official player. No download — the goal here is playing the original. You can also paste YouTube, Spotify and SoundCloud links under “Play from link”.",
+    ytNeedKey: "To search original songs, enter a free YouTube key in Settings. Without a key you can still paste a YouTube/Spotify/SoundCloud link under “Play from link”.",
+    ytSearchFail: "YouTube search failed. Check your key or connection (YouTube may be blocked on your network).",
+    ytQuota: "The daily YouTube search quota is used up. Try again tomorrow or paste a song link directly.",
+    ytNoResults: "No songs found. Try adding the artist name.",
+    ytTitle: "Original song search (YouTube)",
+    ytHint: "Searching in “Original” mode needs a free YouTube Data API key: in <a href=\"https://console.cloud.google.com\" target=\"_blank\" rel=\"noopener\" dir=\"ltr\">console.cloud.google.com</a> create a project, enable “YouTube Data API v3”, create an API key, restrict it to <span dir=\"ltr\">https://rz-mood.github.io/*</span>, then paste it here. The free quota is limited (roughly a hundred searches a day).",
+    ytPh: "API key", ytSaved: "Saved. Original search is on.", ytRemoved: "Key removed.",
+    ytBadKey: "That key doesn't look valid (letters, numbers, - and _ only).",
+    ytTestOk: "✔ The key works. Press “Save” to use it.", ytTestFail: "✘ The key is invalid, its referrer restriction is wrong, or YouTube can't be reached.",
+    embedReopen: "▶ Player", embedNoDownload: "Original songs can't be downloaded; they only play.",
+    embedNoteYt: "Playing in YouTube's official player. Closing this window stops playback.",
+    embedNoteSp: "Playing in Spotify's official player. Full songs usually play only when you're logged in to Spotify; otherwise it's a preview.",
+    embedNoteSc: "Playing in SoundCloud's official player.",
+    openSource: "Open on site"
   }
 };
 let lang = "fa";
@@ -175,6 +211,9 @@ let favs = getJSON("rz-favs", []);
 const JAM_API = "https://api.jamendo.com/v3.0";
 let jamId = /^[A-Za-z0-9]{4,40}$/.test(getRaw("rz-jamendo")) ? getRaw("rz-jamendo") : "";
 const radio = { on: getRaw("rz-radio") === "1", source: getRaw("rz-radio-source"), manual: "", busy: false, seen: [], picks: getJSON("rz-radio-picks", []) };
+const YT_API = "https://www.googleapis.com/youtube/v3";
+let ytKey = /^[A-Za-z0-9_-]{20,80}$/.test(getRaw("rz-ytkey")) ? getRaw("rz-ytkey") : "";
+let mode = getRaw("rz-mode") === "original" ? "original" : "free";
 const tagCache = new Map();
 let proxyBase = "";
 let badState = false;
@@ -185,6 +224,7 @@ const audio = $("audio");
 function slim(tr) {
   const o = { title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() };
   if (tr.src) { o.src = tr.src; o.jid = tr.jid; o.streamUrl = tr.streamUrl; o.dlUrl = tr.dlUrl; if (tr.match != null) o.match = tr.match; }
+  if (tr.src === "embed") { o.kind = tr.kind; o.etype = tr.etype; o.eid = tr.eid; }
   return o;
 }
 function sanitize(name) { return name.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120); }
@@ -319,7 +359,9 @@ function applyLang(l) {
   updateHearts();
   renderRadio();
   renderSource();
+  renderMode();
   renderJamMsg();
+  renderYtMsg();
   renderStatus();
   renderProxyMsg();
   renderShareMsg();
@@ -362,6 +404,7 @@ async function search(query) {
   if (!query) return;
   showView("search");
   addRecent(query);
+  if (mode === "original") { ytSearch(query); return; }
   setStatus("searching");
   $("results").innerHTML = "";
   $("tracksBox").hidden = true;
@@ -468,9 +511,10 @@ function renderTrackList() {
     const fmt = document.createElement("span");
     fmt.className = "fmt";
     fmt.textContent = tr.format || "";
-    li.append(name, fmt, makeHeart(tr), makeBtn("⬇", t("download"), () => download(tr)), makeBtn("⤴", t("share"), () => share(tr)));
+    li.append(name, fmt, makeHeart(tr), ...dlBtns(tr, "⬇", t("download")), makeBtn("⤴", t("share"), () => share(tr)));
     ol.appendChild(li);
   });
+  $("dlAll").hidden = searchTracks.some((x) => x.src === "embed");
   markActive();
 }
 
@@ -484,8 +528,19 @@ function play(i) {
   if (i < 0 || i >= tracks.length) return;
   current = i;
   const tr = tracks[i];
-  audio.src = trackUrl(tr);
-  audio.play().catch(() => {});
+  const isEmbed = tr.src === "embed";
+  if (isEmbed) {
+    audio.pause();
+    audio.hidden = true;
+    openEmbed(tr);
+  } else {
+    closeEmbed();
+    audio.hidden = false;
+    audio.src = trackUrl(tr);
+    audio.play().catch(() => {});
+  }
+  $("dlNow").hidden = isEmbed;
+  $("embedReopen").hidden = !isEmbed;
   $("player").hidden = false;
   document.body.classList.add("has-player");
   $("nowPlaying").textContent = tr.title;
@@ -511,6 +566,7 @@ if ("mediaSession" in navigator) {
 
 // ---------- Download ----------
 async function download(tr) {
+  if (tr.src === "embed") { toast(t("embedNoDownload")); return; }
   const ext = (tr.filename.match(/\.[^.]+$/) || [".mp3"])[0];
   const base = sanitize(tr.title.replace(/\.[^.]+$/, "")) || "music";
   const url = tr.src === "jamendo" ? tr.dlUrl : trackUrl(tr);
@@ -634,7 +690,7 @@ function renderHistory() {
     btns.append(
       makeBtn(t("btnPlay"), t("play"), () => playFromHistory(i)),
       makeHeart(h),
-      makeBtn(t("btnDownload"), t("download"), () => download(h)),
+      ...dlBtns(h, t("btnDownload"), t("download")),
       makeBtn(t("btnShare"), t("share"), () => share(h)),
       makeBtn("✕", t("removeFromHistory"), () => removeHistory(h.orig))
     );
@@ -724,7 +780,7 @@ function renderFavs() {
     btns.append(
       makeBtn(t("btnPlay"), t("play"), () => playFromFavs(i)),
       makeHeart(f),
-      makeBtn(t("btnDownload"), t("download"), () => download(f)),
+      ...dlBtns(f, t("btnDownload"), t("download")),
       makeBtn(t("btnShare"), t("share"), () => share(f))
     );
     row.append(info, btns);
@@ -957,7 +1013,10 @@ async function radioStepJamendo() {
     radioMsg("jamFail", "bad");
   }
 }
-function goNext() { if (radio.on) radioNext(); else play(current + 1); }
+function goNext() {
+  const cur = curTrack();
+  if (radio.on && !(cur && cur.src === "embed")) radioNext(); else play(current + 1);
+}
 
 function addPick(tr) {
   radio.picks = [slim(tr), ...radio.picks.filter((p) => p.orig !== tr.orig)].slice(0, 10);
@@ -1058,6 +1117,145 @@ function renderRadio() {
   $("srcArchive").addEventListener("click", () => setSource("archive"));
 })();
 
+// ---------- Original songs: official players only (YouTube / Spotify / SoundCloud embeds) ----------
+// Nothing here downloads or re-hosts audio; the song plays inside the service's own player.
+const KIND_NAME = { youtube: "YouTube", spotify: "Spotify", soundcloud: "SoundCloud" };
+const SC_RESERVED = new Set(["discover", "stream", "search", "you", "upload", "pages", "charts", "feed", "settings", "messages", "notifications", "terms-of-use"]);
+function parseEmbed(raw) {
+  let u;
+  try { u = new URL(raw); } catch { return null; }
+  if (!/^https?:$/.test(u.protocol)) return null;
+  const host = u.hostname.toLowerCase().replace(/^(www|m|music)\./, "");
+  const seg = u.pathname.split("/").filter(Boolean);
+  if (host === "youtu.be" || host === "youtube.com" || host === "youtube-nocookie.com") {
+    let id = "";
+    if (host === "youtu.be") id = seg[0] || "";
+    else if (u.pathname === "/watch") id = u.searchParams.get("v") || "";
+    else if (["shorts", "embed", "live", "v"].includes(seg[0])) id = seg[1] || "";
+    if (/^[A-Za-z0-9_-]{11}$/.test(id)) {
+      return { kind: "youtube", etype: "video", eid: id, orig: "https://www.youtube.com/watch?v=" + id };
+    }
+    return null;
+  }
+  if (host === "open.spotify.com") {
+    const s = seg[0] && seg[0].startsWith("intl-") ? seg.slice(1) : seg;
+    if (["track", "album", "playlist", "episode", "show", "artist"].includes(s[0]) && /^[A-Za-z0-9]{10,30}$/.test(s[1] || "")) {
+      return { kind: "spotify", etype: s[0], eid: s[1], orig: "https://open.spotify.com/" + s[0] + "/" + s[1] };
+    }
+    return null;
+  }
+  if (host === "soundcloud.com" && seg.length >= 2 && !SC_RESERVED.has(seg[0].toLowerCase()) && seg.every((p) => /^[\w.%-]+$/.test(p))) {
+    const path = seg.slice(0, 3).join("/");
+    return { kind: "soundcloud", etype: "track", eid: path, orig: "https://soundcloud.com/" + path };
+  }
+  return null;
+}
+function embedTrack(e, title, album) {
+  return { src: "embed", kind: e.kind, etype: e.etype, eid: e.eid, title: title || KIND_NAME[e.kind], album: album || KIND_NAME[e.kind], format: KIND_NAME[e.kind], orig: e.orig, filename: "", tags: [] };
+}
+function dlBtns(tr, text, label) {
+  return tr.src === "embed" ? [] : [makeBtn(text, label, () => download(tr))];
+}
+function embedSrc(tr) {
+  if (tr.kind === "youtube") return "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(tr.eid) + "?autoplay=1&playsinline=1&rel=0";
+  if (tr.kind === "spotify") return "https://open.spotify.com/embed/" + tr.etype + "/" + encodeURIComponent(tr.eid);
+  return "https://w.soundcloud.com/player/?url=" + encodeURIComponent(tr.orig) + "&auto_play=true&visual=false";
+}
+function embedHeight(tr) {
+  if (tr.kind === "spotify") return tr.etype === "track" || tr.etype === "episode" ? 152 : 352;
+  if (tr.kind === "soundcloud") return 166;
+  return 0; // youtube: 16:9
+}
+function openEmbed(tr) {
+  const frame = $("embedFrame");
+  frame.innerHTML = "";
+  const f = document.createElement("iframe");
+  f.src = embedSrc(tr);
+  f.title = tr.title;
+  f.allow = "autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write";
+  f.allowFullscreen = true;
+  f.referrerPolicy = "strict-origin-when-cross-origin";
+  const hgt = embedHeight(tr);
+  frame.classList.toggle("video", !hgt);
+  if (hgt) f.height = String(hgt);
+  frame.appendChild(f);
+  $("embedTitle").textContent = tr.title;
+  $("embedSub").textContent = tr.album || "";
+  $("embedNote").textContent = t(tr.kind === "youtube" ? "embedNoteYt" : tr.kind === "spotify" ? "embedNoteSp" : "embedNoteSc");
+  $("embedOpen").href = tr.orig;
+  $("embedFav").dataset.fav = tr.orig;
+  setHeartState($("embedFav"), isFav(tr.orig));
+  $("embedSheet").hidden = false;
+}
+function closeEmbed() {
+  $("embedSheet").hidden = true;
+  $("embedFrame").innerHTML = ""; // removing the iframe stops the playback
+}
+$("embedClose").addEventListener("click", closeEmbed);
+$("embedSheet").addEventListener("click", (e) => { if (e.target === $("embedSheet")) closeEmbed(); });
+$("embedReopen").addEventListener("click", () => { const c = curTrack(); if (c && c.src === "embed") openEmbed(c); });
+$("embedFav").addEventListener("click", () => { const c = curTrack(); if (c) toggleFav(c); });
+$("embedShare").addEventListener("click", () => { const c = curTrack(); if (c) share(c); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("embedSheet").hidden && $("shareSheet").hidden) closeEmbed(); });
+
+function decodeHtml(s) { const ta = document.createElement("textarea"); ta.innerHTML = String(s || ""); return ta.value; }
+
+async function ytSearch(query) {
+  if (!ytKey) { setStatus("ytNeedKey", { labelKey: "goSettings", fn: () => showView("settings") }); return; }
+  setStatus("searching");
+  const url = YT_API + "/search?part=snippet&type=video&videoCategoryId=10&videoEmbeddable=true&maxResults=15&q=" +
+    encodeURIComponent(query) + "&key=" + encodeURIComponent(ytKey);
+  try {
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d && d.error) {
+      const reason = d.error.errors && d.error.errors[0] && d.error.errors[0].reason;
+      setStatus(reason === "quotaExceeded" || reason === "dailyLimitExceeded" || reason === "rateLimitExceeded" ? "ytQuota" : "ytSearchFail");
+      return;
+    }
+    const list = ((d && d.items) || []).filter((it) => it && it.id && it.id.videoId).map((it) => {
+      const sn = it.snippet || {};
+      return embedTrack({ kind: "youtube", etype: "video", eid: it.id.videoId, orig: "https://www.youtube.com/watch?v=" + it.id.videoId }, decodeHtml(sn.title), decodeHtml(sn.channelTitle));
+    });
+    if (!list.length) { setStatus("ytNoResults"); return; }
+    setStatus(null);
+    showTracks(query, list, false);
+  } catch (e) {
+    setStatus("ytSearchFail");
+  }
+}
+
+async function openEmbedLink(e) {
+  let title = "", album = "";
+  const oe = e.kind === "youtube" ? "https://www.youtube.com/oembed?format=json&url="
+    : e.kind === "spotify" ? "https://open.spotify.com/oembed?url="
+    : "https://soundcloud.com/oembed?format=json&url=";
+  try { // best effort: a nicer title if the service answers quickly
+    const ac = new AbortController();
+    const to = setTimeout(() => ac.abort(), 3500);
+    const r = await fetch(oe + encodeURIComponent(e.orig), { signal: ac.signal });
+    clearTimeout(to);
+    const d = await r.json();
+    title = decodeHtml(d.title); album = decodeHtml(d.author_name || d.provider_name || "");
+  } catch {}
+  setStatus(null);
+  showTracks(title || KIND_NAME[e.kind], [embedTrack(e, title, album)], true);
+}
+
+function renderMode() {
+  $("modeFree").setAttribute("aria-checked", mode === "free" ? "true" : "false");
+  $("modeOriginal").setAttribute("aria-checked", mode === "original" ? "true" : "false");
+  $("q").placeholder = t(mode === "original" ? "searchPhOriginal" : "searchPh");
+  $("modeHint").textContent = t(mode === "original" ? "modeHintOriginal" : "modeHintFree");
+}
+function setMode(m) {
+  mode = m;
+  setRaw("rz-mode", m);
+  renderMode();
+}
+$("modeFree").addEventListener("click", () => setMode("free"));
+$("modeOriginal").addEventListener("click", () => setMode("original"));
+
 // ---------- Shared link / pasted link ----------
 async function loadJamendoTrack(id) {
   if (!jamId) { setStatus("jamNeedsKey", { labelKey: "goSettings", fn: () => showView("settings") }); return; }
@@ -1076,6 +1274,8 @@ async function loadJamendoTrack(id) {
 function openFromUrl(raw) {
   let u;
   try { u = new URL(canonical(raw.trim())); } catch { setStatus("invalidLink"); return; }
+  const emb = parseEmbed(u.href);
+  if (emb) { openEmbedLink(emb); return; }
   if (u.hostname === "jamendo.com" || u.hostname.endsWith(".jamendo.com")) {
     const jm = u.pathname.match(/\/track\/(\d+)/);
     if (jm) { loadJamendoTrack(jm[1]); return; }
@@ -1175,6 +1375,42 @@ $("jamTest").addEventListener("click", async () => {
   jamMsg("proxyTesting");
   try { await jamGet("/tracks/", { limit: 1 }, v); jamMsg("jamTestOk", "ok"); }
   catch { jamMsg("jamTestFail", "bad"); }
+});
+
+// ---------- YouTube key settings ----------
+let ytState = null;
+function ytMsg(key, cls) { ytState = key ? { key, cls } : null; renderYtMsg(); }
+function renderYtMsg() {
+  const el = $("ytMsg");
+  el.textContent = ytState ? t(ytState.key) : "";
+  el.dataset.state = (ytState && ytState.cls) || "";
+}
+function normalizeYt(v) { v = (v || "").trim(); return /^[A-Za-z0-9_-]{20,80}$/.test(v) ? v : ""; }
+$("ytInput").value = ytKey;
+$("ytForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const raw = $("ytInput").value.trim();
+  const v = normalizeYt(raw);
+  if (raw && !v) { ytMsg("ytBadKey", "bad"); return; }
+  ytKey = v;
+  setRaw("rz-ytkey", v);
+  ytMsg(v ? "ytSaved" : "ytRemoved");
+  toast(t("settingsSaved"));
+});
+$("ytClear").addEventListener("click", () => {
+  ytKey = "";
+  setRaw("rz-ytkey", "");
+  $("ytInput").value = "";
+  ytMsg("ytRemoved");
+});
+$("ytTest").addEventListener("click", async () => {
+  const v = normalizeYt($("ytInput").value);
+  if (!v) { ytMsg("ytBadKey", "bad"); return; }
+  ytMsg("proxyTesting");
+  try {
+    const d = await (await fetch(YT_API + "/videos?part=id&id=dQw4w9WgXcQ&key=" + encodeURIComponent(v))).json();
+    if (d && !d.error && Array.isArray(d.items)) ytMsg("ytTestOk", "ok"); else ytMsg("ytTestFail", "bad");
+  } catch { ytMsg("ytTestFail", "bad"); }
 });
 
 // ---------- Start ----------

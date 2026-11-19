@@ -268,3 +268,13 @@ li.track .heart { min-width: 0; padding: 6px 10px; }
   .badge { padding: 4px 9px; font-size: 11px; }
   .langbtn { min-width: 38px; }
 }
+
+/* ---------- Original-song mode ---------- */
+.modeseg { margin: 10px 0 4px; }
+#modeHint { margin: 0 2px 8px; }
+.sheet-box { max-height: 94vh; overflow-y: auto; }
+.embed-frame { margin: 10px 0 6px; border-radius: 14px; overflow: hidden; background: rgba(0,0,0,.25); }
+.embed-frame iframe { display: block; width: 100%; border: 0; }
+.embed-frame.video iframe { aspect-ratio: 16 / 9; height: auto; min-height: 200px; }
+.linkbtn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; }
+.card .linkbtn, .sheet-box .linkbtn { color: var(--text-color); }
