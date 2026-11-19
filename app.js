@@ -93,7 +93,7 @@ const I18N = {
     ytBadKey: "کلید معتبر نیست (فقط حروف، عدد، - و _).",
     ytTestOk: "✔ کلید معتبر است. برای استفاده «ذخیره» را بزنید.", ytTestFail: "✘ کلید معتبر نیست، محدودیت دامنه اشتباه است یا YouTube در دسترس نیست.",
     embedReopen: "▶ پخش‌کننده", embedNoDownload: "آهنگ‌های اصلی دانلود ندارند؛ فقط پخش می‌شوند.",
-    embedNoteYt: "پخش با پخش‌کننده‌ی رسمی YouTube. با بستن این پنجره پخش متوقف می‌شود.",
+    embedNoteYt: "پخش با پخش‌کننده‌ی رسمی YouTube. اگر در همین مرورگر وارد YouTube شده باشید، حساب شما شناخته می‌شود. با بستن این پنجره پخش متوقف می‌شود.",
     embedNoteSp: "پخش با پخش‌کننده‌ی رسمی Spotify. آهنگ کامل معمولاً فقط با ورود به حساب Spotify پخش می‌شود، وگرنه پیش‌نمایش است.",
     embedNoteSc: "پخش با پخش‌کننده‌ی رسمی SoundCloud.",
     openSource: "باز کردن در سایت",
@@ -191,7 +191,7 @@ const I18N = {
     ytBadKey: "That key doesn't look valid (letters, numbers, - and _ only).",
     ytTestOk: "✔ The key works. Press “Save” to use it.", ytTestFail: "✘ The key is invalid, its referrer restriction is wrong, or YouTube can't be reached.",
     embedReopen: "▶ Player", embedNoDownload: "Original songs can't be downloaded; they only play.",
-    embedNoteYt: "Playing in YouTube's official player. Closing this window stops playback.",
+    embedNoteYt: "Playing in YouTube's official player. If you are signed in to YouTube in this browser, your account is recognised. Closing this window stops playback.",
     embedNoteSp: "Playing in Spotify's official player. Full songs usually play only when you're logged in to Spotify; otherwise it's a preview.",
     embedNoteSc: "Playing in SoundCloud's official player.",
     openSource: "Open on site",
@@ -1181,7 +1181,7 @@ function dlBtns(tr, text, label) {
   return tr.src === "embed" ? [] : [makeBtn(text, label, () => download(tr))];
 }
 function embedSrc(tr) {
-  if (tr.kind === "youtube") return "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(tr.eid) + "?autoplay=1&playsinline=1&rel=0";
+  if (tr.kind === "youtube") return "https://www.youtube.com/embed/" + encodeURIComponent(tr.eid) + "?autoplay=1&playsinline=1&rel=0";
   if (tr.kind === "spotify") return "https://open.spotify.com/embed/" + tr.etype + "/" + encodeURIComponent(tr.eid);
   return "https://w.soundcloud.com/player/?url=" + encodeURIComponent(tr.orig) + "&auto_play=true&visual=false";
 }
