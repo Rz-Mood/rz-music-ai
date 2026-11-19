@@ -262,12 +262,12 @@ function toast(msg) {
 }
 
 let statusState = null;
-function setStatus(key, action) { statusState = key ? { key, action } : null; renderStatus(); }
+function setStatus(key, action, extra) { statusState = key ? { key, action, extra } : null; renderStatus(); }
 function renderStatus() {
   const el = $("status");
   el.textContent = "";
   if (!statusState) return;
-  el.textContent = t(statusState.key);
+  el.textContent = t(statusState.key) + (statusState.extra ? " [" + statusState.extra + "]" : "");
   if (statusState.action) {
     const b = document.createElement("button");
     b.type = "button"; b.className = "glass-button mini"; b.textContent = t(statusState.action.labelKey);
@@ -1502,10 +1502,15 @@ async function spSearch(query) {
   if (!token) { setStatus("spNeedLogin", { labelKey: "goSettings", fn: () => showView("settings") }); return; }
   setStatus("searching");
   try {
-    const r = await fetch("https://api.spotify.com/v1/search?type=track&limit=15&q=" + encodeURIComponent(query), { headers: { Authorization: "Bearer " + token } });
+    const r = await fetch("https://api.spotify.com/v1/search?type=track&limit=10&q=" + encodeURIComponent(query), { headers: { Authorization: "Bearer " + token } });
     if (r.status === 401) { spDrop(); setStatus("spNeedLogin", { labelKey: "goSettings", fn: () => showView("settings") }); return; }
     if (r.status === 429) { setStatus("spRate"); return; }
-    if (!r.ok) { setStatus("spSearchFail"); return; }
+    if (!r.ok) {
+      let why = "";
+      try { const e = await r.json(); why = (e && e.error && e.error.message) || ""; } catch {}
+      setStatus("spSearchFail", null, ("HTTP " + r.status + " " + why).trim().slice(0, 140));
+      return;
+    }
     const d = await r.json();
     const list = ((d.tracks && d.tracks.items) || []).filter((it) => it && /^[A-Za-z0-9]{10,30}$/.test(it.id || "")).map((it) => {
       const artists = (it.artists || []).map((a) => a.name).filter(Boolean).join(t("sep"));
@@ -1515,7 +1520,7 @@ async function spSearch(query) {
     if (!list.length) { setStatus("ytNoResults"); return; }
     setStatus(null);
     showTracks(query, list, false);
-  } catch { setStatus("spSearchFail"); }
+  } catch (e) { setStatus("spSearchFail", null, "network: " + String((e && e.message) || e).slice(0, 80)); }
 }
 $("spConnect").addEventListener("click", () => { spLogin().catch(() => spMsg("spLoginFail", "bad")); });
 $("spLogout").addEventListener("click", () => { spDrop(); spMsg("spOut"); });
