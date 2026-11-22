@@ -8,8 +8,8 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="icon" href="icon48.png">
   <link rel="apple-touch-icon" href="icon192.png">
-  <link rel="stylesheet" href="glass.css?v=12">
-  <link rel="stylesheet" href="app.css?v=12">
+  <link rel="stylesheet" href="glass.css?v=13">
+  <link rel="stylesheet" href="app.css?v=13">
 </head>
 <body>
   <div class="wrap">
@@ -37,11 +37,21 @@
 
     <!-- ======== Search ======== -->
     <section id="view-search" class="view">
+      <div class="hero fade-in">
+        <h2 data-i18n="heroTitle">…</h2>
+        <p data-i18n="heroSub">…</p>
+        <div class="steps">
+          <span class="step"><b>1</b><i data-i18n="step1">…</i></span>
+          <span class="step"><b>2</b><i data-i18n="step2">…</i></span>
+          <span class="step"><b>3</b><i data-i18n="step3">…</i></span>
+        </div>
+      </div>
       <form id="searchForm" class="searchbar glass fade-in">
         <input id="q" type="search" autocomplete="off" enterkeyhint="search">
         <button class="glass-button go" type="submit" data-i18n="search">…</button>
       </form>
       <div class="seg modeseg" role="radiogroup" data-i18n-aria="modeLabel">
+        <button id="modeAll" class="seg-btn" type="button" role="radio" aria-checked="false" data-i18n="modeAll">…</button>
         <button id="modeFree" class="seg-btn" type="button" role="radio" aria-checked="true" data-i18n="modeFree">…</button>
         <button id="modeOriginal" class="seg-btn" type="button" role="radio" aria-checked="false" data-i18n="modeOriginal">…</button>
       </div>
@@ -284,6 +294,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

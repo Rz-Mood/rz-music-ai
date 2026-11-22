@@ -7,7 +7,7 @@ const GOOD_FORMATS = ["VBR MP3", "MP3", "128Kbps MP3", "64Kbps MP3", "Ogg Vorbis
 const HAS_EXT_DL = typeof chrome !== "undefined" && chrome.downloads && chrome.downloads.download;
 const ORIGIN = "https://archive.org";
 const SITE_URL = location.protocol.startsWith("http") ? location.origin + location.pathname : "https://rz-mood.github.io/rz-music-ai/";
-const SUGGESTIONS = ["jazz", "piano", "classical", "lofi", "ambient", "rock", "blues", "folk", "guitar", "orchestra"];
+const SUGGESTIONS = ["jazz", "piano", "classical", "lofi", "ambient", "rock", "blues", "folk", "guitar", "orchestra", "pop", "hip hop", "rnb", "persian", "electronic"];
 
 // ---------- Translations ----------
 const I18N = {
@@ -107,7 +107,13 @@ const I18N = {
     spRate: "تعداد درخواست‌ها به Spotify زیاد بود. کمی بعد دوباره امتحان کنید.",
     spLoginFail: "ورود به Spotify کامل نشد. دوباره امتحان کنید.",
     spBadHost: "ورود به Spotify فقط از آدرس اصلی سایت (rz-mood.github.io/rz-music-ai) ممکن است.",
-    spDone: "به Spotify وصل شدید ✔", spOut: "اتصال قطع شد"
+    spDone: "به Spotify وصل شدید ✔", spOut: "اتصال قطع شد",
+    heroTitle: "جستجوی آهنگ", heroSub: "نام آهنگ یا خواننده را بنویسید و روی نتیجه بزنید تا پخش شود.",
+    step1: "جستجو", step2: "روی آهنگ بزنید", step3: "پخش می‌شود",
+    modeAll: "همه منابع", searchPhAll: "نام آهنگ یا خواننده…",
+    modeHintAll: "هم‌زمان در YouTube (جستجوی موسیقی گوگل)، Spotify، Jamendo و Internet Archive جستجو می‌شود. آهنگ‌های اصلی با پخش‌کننده‌ی رسمی پخش می‌شوند و دانلود ندارند.",
+    allMissing: "منابع غیرفعال: {list}. از تنظیمات فعالشان کنید.",
+    srcAll: "همه", srcOff: "کلید لازم", srcConnect: "نیاز به اتصال"
   },
   en: {
     dir: "ltr", locale: "en-US", other: "فارسی", sep: ", ",
@@ -205,7 +211,13 @@ const I18N = {
     spRate: "Too many requests to Spotify. Try again shortly.",
     spLoginFail: "Spotify login didn't complete. Please try again.",
     spBadHost: "Spotify login only works from the main site address (rz-mood.github.io/rz-music-ai).",
-    spDone: "Connected to Spotify ✔", spOut: "Disconnected"
+    spDone: "Connected to Spotify ✔", spOut: "Disconnected",
+    heroTitle: "Search for a song", heroSub: "Type a song or an artist, then tap a result to play it.",
+    step1: "Search", step2: "Tap a song", step3: "It plays",
+    modeAll: "All sources", searchPhAll: "Song or artist name…",
+    modeHintAll: "Searches YouTube (Google's music search), Spotify, Jamendo and the Internet Archive at once. Original songs play in the official players and can't be downloaded.",
+    allMissing: "Sources that are off: {list}. Turn them on in Settings.",
+    srcAll: "All", srcOff: "key needed", srcConnect: "login needed"
   }
 };
 let lang = "fa";
@@ -235,7 +247,7 @@ let jamId = /^[A-Za-z0-9]{4,40}$/.test(getRaw("rz-jamendo")) ? getRaw("rz-jamend
 const radio = { on: getRaw("rz-radio") === "1", source: getRaw("rz-radio-source"), manual: "", busy: false, seen: [], picks: getJSON("rz-radio-picks", []) };
 const YT_API = "https://www.googleapis.com/youtube/v3";
 let ytKey = /^[A-Za-z0-9_-]{20,80}$/.test(getRaw("rz-ytkey")) ? getRaw("rz-ytkey") : "";
-let mode = getRaw("rz-mode") === "original" ? "original" : "free";
+let mode = ["original", "all"].includes(getRaw("rz-mode")) ? getRaw("rz-mode") : "free";
 let prov = getRaw("rz-prov") === "spotify" ? "spotify" : "youtube";
 const tagCache = new Map();
 let proxyBase = "";
@@ -386,6 +398,7 @@ function applyLang(l) {
   renderJamMsg();
   renderYtMsg();
   renderSp();
+  if (allData && mode === "all") renderAll();
   renderStatus();
   renderProxyMsg();
   renderShareMsg();
@@ -428,6 +441,7 @@ async function search(query) {
   if (!query) return;
   showView("search");
   addRecent(query);
+  if (mode === "all") { allSearch(query); return; }
   if (mode === "original") { if (prov === "spotify") spSearch(query); else ytSearch(query); return; }
   setStatus("searching");
   $("results").innerHTML = "";
@@ -1267,10 +1281,11 @@ async function openEmbedLink(e) {
 }
 
 function renderMode() {
+  $("modeAll").setAttribute("aria-checked", mode === "all" ? "true" : "false");
   $("modeFree").setAttribute("aria-checked", mode === "free" ? "true" : "false");
   $("modeOriginal").setAttribute("aria-checked", mode === "original" ? "true" : "false");
-  $("q").placeholder = t(mode === "original" ? "searchPhOriginal" : "searchPh");
-  $("modeHint").textContent = t(mode === "original" ? "modeHintOriginal" : "modeHintFree");
+  $("q").placeholder = t(mode === "original" ? "searchPhOriginal" : mode === "all" ? "searchPhAll" : "searchPh");
+  $("modeHint").textContent = t(mode === "original" ? "modeHintOriginal" : mode === "all" ? "modeHintAll" : "modeHintFree");
   $("provSeg").hidden = mode !== "original";
   $("provYt").setAttribute("aria-checked", prov === "youtube" ? "true" : "false");
   $("provSp").setAttribute("aria-checked", prov === "spotify" ? "true" : "false");
@@ -1282,8 +1297,161 @@ function setMode(m) {
   setRaw("rz-mode", m);
   renderMode();
 }
+$("modeAll").addEventListener("click", () => setMode("all"));
 $("modeFree").addEventListener("click", () => setMode("free"));
 $("modeOriginal").addEventListener("click", () => setMode("original"));
+
+// ---------- All sources: one search over YouTube, Spotify, Jamendo and the Internet Archive ----------
+const SRC_NAME = { youtube: "YouTube", spotify: "Spotify", jamendo: "Jamendo", archive: "Internet Archive" };
+let allData = null, allFilter = "all";
+class SrcErr extends Error { constructor(key, detail) { super(key); this.key = key; this.detail = detail || ""; } }
+
+async function ytFetch(query) {
+  let d;
+  try {
+    d = await (await fetch(YT_API + "/search?part=snippet&type=video&videoCategoryId=10&videoEmbeddable=true&maxResults=10&q=" +
+      encodeURIComponent(query) + "&key=" + encodeURIComponent(ytKey))).json();
+  } catch { throw new SrcErr("ytSearchFail"); }
+  if (d && d.error) {
+    const reason = d.error.errors && d.error.errors[0] && d.error.errors[0].reason;
+    throw new SrcErr(["quotaExceeded", "dailyLimitExceeded", "rateLimitExceeded"].includes(reason) ? "ytQuota" : "ytSearchFail");
+  }
+  return ((d && d.items) || []).filter((it) => it && it.id && it.id.videoId).map((it) => {
+    const sn = it.snippet || {};
+    return embedTrack({ kind: "youtube", etype: "video", eid: it.id.videoId, orig: "https://www.youtube.com/watch?v=" + it.id.videoId }, decodeHtml(sn.title), decodeHtml(sn.channelTitle));
+  });
+}
+async function spFetch(query) {
+  const token = await spToken();
+  if (!token) throw new SrcErr("spNeedLogin");
+  let r;
+  try { r = await fetch("https://api.spotify.com/v1/search?type=track&limit=10&q=" + encodeURIComponent(query), { headers: { Authorization: "Bearer " + token } }); }
+  catch { throw new SrcErr("spSearchFail"); }
+  if (r.status === 401) { spDrop(); throw new SrcErr("spNeedLogin"); }
+  if (r.status === 429) throw new SrcErr("spRate");
+  if (!r.ok) {
+    let why = "";
+    try { const e = await r.json(); why = (e && e.error && e.error.message) || ""; } catch {}
+    throw new SrcErr("spSearchFail", ("HTTP " + r.status + " " + why).trim().slice(0, 140));
+  }
+  const d = await r.json();
+  return ((d.tracks && d.tracks.items) || []).filter((it) => it && /^[A-Za-z0-9]{10,30}$/.test(it.id || "")).map((it) => {
+    const artists = (it.artists || []).map((a) => a.name).filter(Boolean).join(t("sep"));
+    return embedTrack({ kind: "spotify", etype: "track", eid: it.id, orig: "https://open.spotify.com/track/" + it.id }, it.name, [artists, it.album && it.album.name].filter(Boolean).join(" · "));
+  });
+}
+async function jamFetch(query) {
+  try {
+    const res = await jamGet("/tracks/", { search: query, include: "musicinfo", audioformat: "mp32", audiodlformat: "mp32", limit: 10, order: "popularity_total" });
+    return res.filter((r) => r && r.id != null && r.audio).map(jamTrack);
+  } catch { throw new SrcErr("jamFail"); }
+}
+async function arcFetch(query) {
+  const esc = query.replace(/["\\]/g, " ");
+  const q = `(title:("${esc}") OR creator:("${esc}")) AND mediatype:audio`;
+  try {
+    const d = await (await fetch(A("/advancedsearch.php?q=") + encodeURIComponent(q) + "&fl[]=identifier&fl[]=title&fl[]=creator&sort[]=downloads desc&rows=10&output=json")).json();
+    return (d.response && d.response.docs) || [];
+  } catch { throw new SrcErr("connFailed"); }
+}
+
+async function allSearch(query) {
+  setStatus("searching");
+  $("results").innerHTML = "";
+  $("tracksBox").hidden = true;
+  const jobs = [], off = [];
+  if (ytKey) jobs.push(["youtube", ytFetch(query)]); else off.push("YouTube (" + t("srcOff") + ")");
+  if (spTok) jobs.push(["spotify", spFetch(query)]); else off.push("Spotify (" + t("srcConnect") + ")");
+  if (jamId) jobs.push(["jamendo", jamFetch(query)]); else off.push("Jamendo (" + t("srcOff") + ")");
+  jobs.push(["archive", arcFetch(query)]);
+  const res = await Promise.allSettled(jobs.map((j) => j[1]));
+  allData = { off, sections: jobs.map((j, i) => ({
+    src: j[0], items: res[i].status === "fulfilled" ? res[i].value : [],
+    err: res[i].status === "rejected" ? res[i].reason : null
+  })) };
+  allFilter = "all";
+  setStatus(null);
+  renderAll();
+}
+
+function renderAll() {
+  const box = $("results");
+  box.innerHTML = "";
+  if (!allData) return;
+  const secs = allData.sections;
+  const any = secs.some((s) => s.items.length);
+  if (!any && !secs.some((s) => s.err)) setStatus("ytNoResults"); else if (statusState && statusState.key === "ytNoResults") setStatus(null);
+  // filter chips
+  const bar = document.createElement("div");
+  bar.className = "chips";
+  bar.appendChild(chipButton(t("srcAll"), allFilter === "all", () => { allFilter = "all"; renderAll(); }));
+  secs.forEach((s) => bar.appendChild(chipButton(SRC_NAME[s.src], allFilter === s.src, () => { allFilter = s.src; renderAll(); })));
+  box.appendChild(bar);
+  if (allData.off.length) {
+    const n = document.createElement("p");
+    n.className = "hint src-note";
+    n.textContent = t("allMissing", { list: allData.off.join(t("sep")) });
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "glass-button mini"; b.textContent = t("goSettings");
+    b.addEventListener("click", () => showView("settings"));
+    n.appendChild(b);
+    box.appendChild(n);
+  }
+  const queue = [];
+  secs.filter((s) => allFilter === "all" || allFilter === s.src).forEach((s) => {
+    if (s.src !== "archive") queue.push(...s.items);
+  });
+  secs.filter((s) => allFilter === "all" || allFilter === s.src).forEach((s) => {
+    const h = document.createElement("h3");
+    h.className = "sec-h";
+    const badge = document.createElement("span"); badge.className = "src-badge"; badge.textContent = SRC_NAME[s.src];
+    const cnt = document.createElement("small"); cnt.textContent = String(s.items.length);
+    h.append(badge, cnt);
+    box.appendChild(h);
+    if (s.err) {
+      const p = document.createElement("p");
+      p.className = "hint state src-note"; p.dataset.state = "bad";
+      p.textContent = t(s.err.key) + (s.err.detail ? " [" + s.err.detail + "]" : "");
+      box.appendChild(p);
+      return;
+    }
+    if (s.src === "archive") {
+      renderArchiveRows(box, s.items);
+      return;
+    }
+    s.items.forEach((tr) => {
+      const idx = queue.indexOf(tr);
+      const el = document.createElement("div");
+      el.className = "item track-row glass glass-hover fade-in";
+      el.dataset.orig = tr.orig;
+      const info = document.createElement("div");
+      info.innerHTML = '<div class="t"></div><div class="a"></div>';
+      info.querySelector(".t").textContent = tr.title;
+      info.querySelector(".a").textContent = tr.album || "";
+      info.style.flex = "1"; info.style.minWidth = "0";
+      const btns = document.createElement("div");
+      btns.className = "rowbtns";
+      btns.append(makeHeart(tr), ...dlBtns(tr.dlUrl || tr.src !== "jamendo" ? tr : { ...tr, src: "embed" }, "⬇", t("download")), makeBtn("⤴", t("share"), () => share(tr)));
+      el.append(info, btns);
+      el.addEventListener("click", () => { tracks = queue; recordPlays = true; play(idx); });
+      box.appendChild(el);
+    });
+  });
+  markActive();
+}
+function renderArchiveRows(box, docs) {
+  for (const d of docs) {
+    const el = document.createElement("div");
+    el.className = "item glass glass-hover fade-in";
+    const creator = Array.isArray(d.creator) ? d.creator.join(t("sep")) : (d.creator || "");
+    const title = Array.isArray(d.title) ? d.title[0] : (d.title || d.identifier);
+    el.innerHTML = `<img alt="" loading="lazy" src="${A("/services/img/")}${encodeURIComponent(d.identifier)}"><div><div class="t"></div><div class="a"></div></div>`;
+    el.querySelector(".t").textContent = title;
+    el.querySelector(".a").textContent = creator;
+    el.addEventListener("click", () => loadItem(d.identifier, title, true));
+    box.appendChild(el);
+  }
+}
 
 // ---------- Shared link / pasted link ----------
 async function loadJamendoTrack(id) {
