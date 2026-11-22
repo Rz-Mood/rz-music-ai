@@ -92,6 +92,7 @@ const I18N = {
     ytPh: "API key", ytSaved: "ذخیره شد. جستجوی اصلی فعال است.", ytRemoved: "کلید حذف شد.",
     ytBadKey: "کلید معتبر نیست (فقط حروف، عدد، - و _).",
     ytTestOk: "✔ کلید معتبر است. برای استفاده «ذخیره» را بزنید.", ytTestFail: "✘ کلید معتبر نیست، محدودیت دامنه اشتباه است یا YouTube در دسترس نیست.",
+    embedMin: "▁ کوچک کردن", embedExpand: "▢ بزرگ", embedStop: "✕ توقف",
     embedReopen: "▶ پخش‌کننده", embedNoDownload: "آهنگ‌های اصلی دانلود ندارند؛ فقط پخش می‌شوند.",
     embedNoteYt: "پخش با پخش‌کننده‌ی رسمی YouTube. اگر در همین مرورگر وارد YouTube شده باشید، حساب شما شناخته می‌شود. با بستن این پنجره پخش متوقف می‌شود.",
     embedNoteSp: "پخش با پخش‌کننده‌ی رسمی Spotify. آهنگ کامل معمولاً فقط با ورود به حساب Spotify پخش می‌شود، وگرنه پیش‌نمایش است.",
@@ -196,6 +197,7 @@ const I18N = {
     ytPh: "API key", ytSaved: "Saved. Original search is on.", ytRemoved: "Key removed.",
     ytBadKey: "That key doesn't look valid (letters, numbers, - and _ only).",
     ytTestOk: "✔ The key works. Press “Save” to use it.", ytTestFail: "✘ The key is invalid, its referrer restriction is wrong, or YouTube can't be reached.",
+    embedMin: "▁ Minimize", embedExpand: "▢ Expand", embedStop: "✕ Stop",
     embedReopen: "▶ Player", embedNoDownload: "Original songs can't be downloaded; they only play.",
     embedNoteYt: "Playing in YouTube's official player. If you are signed in to YouTube in this browser, your account is recognised. Closing this window stops playback.",
     embedNoteSp: "Playing in Spotify's official player. Full songs usually play only when you're logged in to Spotify; otherwise it's a preview.",
@@ -1204,7 +1206,21 @@ function embedHeight(tr) {
   if (tr.kind === "soundcloud") return 166;
   return 0; // youtube: 16:9
 }
+let embedMini = false;
+function dockEmbed() {
+  const sh = $("embedSheet");
+  const p = $("player");
+  const top = p && !p.hidden ? p.getBoundingClientRect().top : innerHeight - 90;
+  sh.style.bottom = embedMini ? Math.max(8, Math.round(innerHeight - top + 8)) + "px" : "";
+}
+function setEmbedMini(on) {
+  embedMini = !!on;
+  $("embedSheet").classList.toggle("mini", embedMini);
+  dockEmbed();
+}
+window.addEventListener("resize", () => { if (embedMini) dockEmbed(); });
 function openEmbed(tr) {
+  const keepMini = embedMini && !$("embedSheet").hidden;
   const frame = $("embedFrame");
   frame.innerHTML = "";
   const f = document.createElement("iframe");
@@ -1224,17 +1240,27 @@ function openEmbed(tr) {
   $("embedFav").dataset.fav = tr.orig;
   setHeartState($("embedFav"), isFav(tr.orig));
   $("embedSheet").hidden = false;
+  setEmbedMini(keepMini);
 }
 function closeEmbed() {
+  setEmbedMini(false);
   $("embedSheet").hidden = true;
   $("embedFrame").innerHTML = ""; // removing the iframe stops the playback
 }
 $("embedClose").addEventListener("click", closeEmbed);
-$("embedSheet").addEventListener("click", (e) => { if (e.target === $("embedSheet")) closeEmbed(); });
-$("embedReopen").addEventListener("click", () => { const c = curTrack(); if (c && c.src === "embed") openEmbed(c); });
+$("embedClose2").addEventListener("click", closeEmbed);
+$("embedMin").addEventListener("click", () => setEmbedMini(true));
+$("embedExpand").addEventListener("click", () => setEmbedMini(false));
+// Tapping outside the player only minimizes it, so the music keeps playing.
+$("embedSheet").addEventListener("click", (e) => { if (e.target === $("embedSheet") && !embedMini) setEmbedMini(true); });
+$("embedReopen").addEventListener("click", () => {
+  const c = curTrack();
+  if (!c || c.src !== "embed") return;
+  if (!$("embedSheet").hidden && $("embedFrame").firstChild) setEmbedMini(!embedMini); else openEmbed(c);
+});
 $("embedFav").addEventListener("click", () => { const c = curTrack(); if (c) toggleFav(c); });
 $("embedShare").addEventListener("click", () => { const c = curTrack(); if (c) share(c); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("embedSheet").hidden && $("shareSheet").hidden) closeEmbed(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("embedSheet").hidden && !embedMini && $("shareSheet").hidden) setEmbedMini(true); });
 
 function decodeHtml(s) { const ta = document.createElement("textarea"); ta.innerHTML = String(s || ""); return ta.value; }
 
