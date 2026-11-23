@@ -250,12 +250,13 @@ let recent = getJSON("rz-searches", []);
 let favs = getJSON("rz-favs", []);
 const JAM_API = "https://api.jamendo.com/v3.0";
 const AUDIUS_API = "https://api.audius.co/v1";
+const AUDIUS_APP = "RZ_Mood";
 
 function audiusTrack(r) {
   const user = r.user || {};
   const artwork = r.artwork || {};
   const id = String(r.id || "");
-  const streamUrl = AUDIUS_API + "/tracks/" + encodeURIComponent(id) + "/stream";
+  const streamUrl = AUDIUS_API + "/tracks/" + encodeURIComponent(id) + "/stream?app_name=" + encodeURIComponent(AUDIUS_APP);
   const rawTags = Array.isArray(r.tags) ? r.tags : String(r.tags || "").split(",");
   const tags = [...new Set([r.genre, r.mood, ...rawTags]
     .map((x) => String(x || "").trim().toLowerCase())
@@ -267,7 +268,9 @@ function audiusTrack(r) {
     format: "MP3",
     orig: r.permalink || ("https://audius.co/" + id),
     streamUrl,
-    dlUrl: r.downloadable === true ? streamUrl : "",
+    dlUrl: (r.is_downloadable === true || r.downloadable === true)
+      ? AUDIUS_API + "/tracks/" + encodeURIComponent(id) + "/download?app_name=" + encodeURIComponent(AUDIUS_APP)
+      : "",
     filename: sanitize((r.title || "audius-track") + ".mp3"),
     img: artwork._480x480 || artwork._150x150 || "",
     tags
@@ -275,7 +278,8 @@ function audiusTrack(r) {
 }
 
 async function audiusFetch(query, limit = 20) {
-  const url = AUDIUS_API + "/tracks/search?query=" + encodeURIComponent(query) + "&limit=" + limit;
+  const url = AUDIUS_API + "/tracks/search?query=" + encodeURIComponent(query) +
+    "&limit=" + limit + "&app_name=" + encodeURIComponent(AUDIUS_APP);
   const response = await fetch(url, { headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error("Audius HTTP " + response.status);
   const payload = await response.json();
