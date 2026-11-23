@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0c12">
+  <meta name="theme-color" content="#0b0716">
   <title>Rz Station</title>
   <link rel="manifest" href="site.webmanifest">
   <link rel="icon" href="icon48.png">
   <link rel="apple-touch-icon" href="icon192.png">
-  <link rel="stylesheet" href="glass.css?v=15">
-  <link rel="stylesheet" href="app.css?v=15">
-  <link rel="stylesheet" href="bg.css?v=15">
+  <link rel="stylesheet" href="glass.css?v=16">
+  <link rel="stylesheet" href="app.css?v=16">
+  <link rel="stylesheet" href="bg.css?v=16">
 </head>
 <body>
   <div id="bg" aria-hidden="true">
@@ -190,7 +190,7 @@
     <section id="view-history" class="view" hidden>
       <div class="head">
         <h2 data-i18n="history">…</h2>
-        <button id="clearHistory" class="glass-button mini" type="button" data-i18n="clearAll">…</button>
+        <button id="clearHistory" class="glass-button danger mini" type="button" data-i18n="clearAll">…</button>
       </div>
       <p id="historyEmpty" class="empty glass" data-i18n="historyEmpty">…</p>
       <div id="historyList"></div>
@@ -208,7 +208,7 @@
           <div class="row">
             <button class="glass-button" type="submit" data-i18n="save">…</button>
             <button class="glass-button" id="proxyTest" type="button" data-i18n="testConn">…</button>
-            <button class="glass-button" id="proxyClear" type="button" data-i18n="remove">…</button>
+            <button class="glass-button danger" id="proxyClear" type="button" data-i18n="remove">…</button>
           </div>
         </form>
         <p id="proxyMsg" class="hint state"></p>
@@ -222,7 +222,7 @@
           <div class="row">
             <button class="glass-button" type="submit" data-i18n="save">…</button>
             <button class="glass-button" id="jamTest" type="button" data-i18n="testConn">…</button>
-            <button class="glass-button" id="jamClear" type="button" data-i18n="remove">…</button>
+            <button class="glass-button danger" id="jamClear" type="button" data-i18n="remove">…</button>
           </div>
         </form>
         <p id="jamMsg" class="hint state"></p>
@@ -236,7 +236,7 @@
           <div class="row">
             <button class="glass-button" type="submit" data-i18n="save">…</button>
             <button class="glass-button" id="ytTest" type="button" data-i18n="testConn">…</button>
-            <button class="glass-button" id="ytClear" type="button" data-i18n="remove">…</button>
+            <button class="glass-button danger" id="ytClear" type="button" data-i18n="remove">…</button>
           </div>
         </form>
         <p id="ytMsg" class="hint state"></p>
@@ -248,7 +248,7 @@
         <p id="spStatus" class="hint state"></p>
         <div class="row">
           <button class="glass-button" id="spConnect" type="button" data-i18n="spConnect">…</button>
-          <button class="glass-button" id="spLogout" type="button" data-i18n="spLogout" hidden>…</button>
+          <button class="glass-button danger" id="spLogout" type="button" data-i18n="spLogout" hidden>…</button>
         </div>
         <p id="spMsg" class="hint state"></p>
       </div>
@@ -275,8 +275,8 @@
         <h3 data-i18n="dataTitle">…</h3>
         <p class="hint" data-i18n="dataHint">…</p>
         <div class="row">
-          <button class="glass-button" id="clearSearches" type="button" data-i18n="clearSearches">…</button>
-          <button class="glass-button" id="clearHistory2" type="button" data-i18n="clearHistory">…</button>
+          <button class="glass-button danger" id="clearSearches" type="button" data-i18n="clearSearches">…</button>
+          <button class="glass-button danger" id="clearHistory2" type="button" data-i18n="clearHistory">…</button>
         </div>
       </div>
 
@@ -290,20 +290,35 @@
   <!-- ======== Player ======== -->
   <footer id="player" class="glass glow" hidden>
     <div class="np-row">
+      <div id="npArt" class="np-art" aria-hidden="true">
+        <span class="note">♪</span>
+        <img id="npImg" alt="" hidden>
+        <span class="eq"><i></i><i></i><i></i></span>
+      </div>
       <div class="np">
         <div id="nowPlaying">—</div>
         <div id="nowAlbum"></div>
       </div>
       <button id="radioToggle" class="glass-button mini radio-toggle" type="button" aria-pressed="false" data-i18n-title="radioToggleTitle" data-i18n-aria="radioToggleTitle">📻</button>
+      <button id="plToggle" class="glass-button mini pl-toggle" type="button" data-i18n-aria="plCollapse" data-i18n-title="plCollapse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
     </div>
-    <audio id="audio" controls preload="none"></audio>
+    <div class="seek-row">
+      <time id="tCur">0:00</time>
+      <input id="seek" type="range" min="0" max="1000" value="0" step="1" disabled data-i18n-aria="seekLabel">
+      <time id="tDur" class="time-dur">0:00</time>
+    </div>
+    <audio id="audio" preload="none"></audio>
+    <div class="transport">
+      <button id="prev" class="glass-button" type="button" data-i18n-aria="prev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></button>
+      <button id="ppBtn" class="glass-button" type="button" data-i18n-aria="playPause"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+      <button id="next" class="glass-button" type="button" data-i18n-aria="next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z"/></svg></button>
+      <div class="vol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 8.5a5 5 0 010 7l-1.2-1.2a3.3 3.3 0 000-4.6z"/></svg><input id="vol" type="range" min="0" max="100" value="100" step="1" data-i18n-aria="volLabel"></div>
+    </div>
     <div class="ctrl">
-      <button id="prev" class="glass-button" type="button" data-i18n-aria="prev">⏮</button>
       <button id="favNow" class="glass-button heart" type="button">♡</button>
       <button id="dlNow" class="glass-button" type="button" data-i18n="dlNow">…</button>
       <button id="embedReopen" class="glass-button" type="button" data-i18n="embedReopen" hidden>…</button>
       <button id="shareNow" class="glass-button" type="button" data-i18n="shareNow">…</button>
-      <button id="next" class="glass-button" type="button" data-i18n-aria="next">⏭</button>
     </div>
   </footer>
 
@@ -353,6 +368,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>

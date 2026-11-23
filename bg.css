@@ -1,5 +1,6 @@
 /* Animated backgrounds: one looping scene per theme. Only transform/opacity are animated. */
-#bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+#bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; opacity: .58; }
+html[data-theme="light"] #bg { opacity: .85; }
 #bg .scene { position: absolute; inset: 0; display: none; animation: bgIn 1.2s ease both; }
 html[data-theme="purple"] #bg .s-purple, html[data-theme="green"] #bg .s-green, html[data-theme="blue"] #bg .s-blue,
 html[data-theme="orange"] #bg .s-orange, html[data-theme="pink"] #bg .s-pink, html[data-theme="light"] #bg .s-light { display: block; }
@@ -17,6 +18,7 @@ html[data-anim="off"] #bg * { animation-play-state: paused !important; }
 .s-pink .cloud { color: #ffd6e8; }
 @keyframes drift { from { transform: translateX(-60vw); } to { transform: translateX(130vw); } }
 
+.moon, .sun { filter: opacity(.7); }
 .moon { right: 14%; top: 9%; width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #dfe9ff 60%, #b9c8ff); box-shadow: 0 0 40px 12px rgba(190,210,255,.35); animation: glow 7s ease-in-out infinite; }
 .moon.g { background: radial-gradient(circle at 35% 35%, #fff, #e6fff1 60%, #b4ffd6); box-shadow: 0 0 40px 12px rgba(150,255,200,.3); }
 .moon.p { background: radial-gradient(circle at 35% 35%, #fff, #f1e6ff 60%, #d9bfff); box-shadow: 0 0 44px 14px rgba(200,160,255,.35); }
@@ -63,3 +65,9 @@ html[data-anim="off"] #bg * { animation-play-state: paused !important; }
 @keyframes fall { 0% { transform: translate3d(0, -6vh, 0) rotate(0deg); } 50% { transform: translate3d(var(--sw), 52vh, 0) rotate(200deg); } 100% { transform: translate3d(calc(var(--sw) * -.6), 112vh, 0) rotate(380deg); } }
 
 @media (prefers-reduced-motion: reduce) { html:not([data-anim="on"]) #bg * { animation-play-state: paused !important; } }
+
+/* Wide screens: keep the landscape as a centred backdrop (not a 3x zoomed crop), faded at the edges. */
+@media (min-width: 760px) {
+  #bg svg.land { inset: 0 auto 0 50%; width: 720px; margin-inline-start: -360px; direction: ltr;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); }
+}

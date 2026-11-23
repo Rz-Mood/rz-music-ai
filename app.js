@@ -92,6 +92,8 @@ const I18N = {
     ytPh: "API key", ytSaved: "ذخیره شد. جستجوی اصلی فعال است.", ytRemoved: "کلید حذف شد.",
     ytBadKey: "کلید معتبر نیست (فقط حروف، عدد، - و _).",
     ytTestOk: "✔ کلید معتبر است. برای استفاده «ذخیره» را بزنید.", ytTestFail: "✘ کلید معتبر نیست، محدودیت دامنه اشتباه است یا YouTube در دسترس نیست.",
+    plCollapse: "کوچک/بزرگ کردن پخش‌کننده", seekLabel: "جلو و عقب بردن آهنگ", playPause: "پخش / توقف", volLabel: "صدا",
+    themeN_purple: "بنفش", themeN_green: "سبز", themeN_blue: "آبی", themeN_orange: "نارنجی", themeN_pink: "صورتی", themeN_light: "روشن",
     bgAnim: "پس‌زمینه‌ی متحرک", bgAnimHint: "هر رنگ منظره‌ی خودش را دارد: بنفش آسمان شب، سبز جنگل، آبی کوهستان، نارنجی قصر سلطنتی، صورتی شکوفه، سفید آسمان. برای صرفه‌جویی در باتری خاموشش کنید.",
     embedMin: "▁ کوچک کردن", embedExpand: "▢ بزرگ", embedStop: "✕ توقف",
     embedReopen: "▶ پخش‌کننده", embedNoDownload: "آهنگ‌های اصلی دانلود ندارند؛ فقط پخش می‌شوند.",
@@ -198,6 +200,8 @@ const I18N = {
     ytPh: "API key", ytSaved: "Saved. Original search is on.", ytRemoved: "Key removed.",
     ytBadKey: "That key doesn't look valid (letters, numbers, - and _ only).",
     ytTestOk: "✔ The key works. Press “Save” to use it.", ytTestFail: "✘ The key is invalid, its referrer restriction is wrong, or YouTube can't be reached.",
+    plCollapse: "Collapse / expand player", seekLabel: "Seek", playPause: "Play / pause", volLabel: "Volume",
+    themeN_purple: "Purple", themeN_green: "Green", themeN_blue: "Blue", themeN_orange: "Orange", themeN_pink: "Pink", themeN_light: "Light",
     bgAnim: "Animated background", bgAnimHint: "Each color has its own scene: purple night sky, green forest, blue mountains, orange royal castle, pink blossoms, white sky. Turn it off to save battery.",
     embedMin: "▁ Minimize", embedExpand: "▢ Expand", embedStop: "✕ Stop",
     embedReopen: "▶ Player", embedNoDownload: "Original songs can't be downloaded; they only play.",
@@ -264,6 +268,7 @@ function slim(tr) {
   const o = { title: tr.title, album: tr.album || "", format: tr.format || "", orig: tr.orig, filename: tr.filename, tags: tr.tags, ts: Date.now() };
   if (tr.src) { o.src = tr.src; o.jid = tr.jid; o.streamUrl = tr.streamUrl; o.dlUrl = tr.dlUrl; if (tr.match != null) o.match = tr.match; }
   if (tr.src === "embed") { o.kind = tr.kind; o.etype = tr.etype; o.eid = tr.eid; }
+  if (tr.img) o.img = tr.img;
   return o;
 }
 function sanitize(name) { return name.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120); }
@@ -282,7 +287,10 @@ function setStatus(key, action, extra) { statusState = key ? { key, action, extr
 function renderStatus() {
   const el = $("status");
   el.textContent = "";
+  delete el.dataset.kind; delete el.dataset.tone;
   if (!statusState) return;
+  el.dataset.kind = statusState.key;
+  if (/Fail|Quota|failed|NeedKey|NeedLogin|Rate|Bad/i.test(statusState.key)) el.dataset.tone = "warn";
   el.textContent = t(statusState.key) + (statusState.extra ? " [" + statusState.extra + "]" : "");
   if (statusState.action) {
     const b = document.createElement("button");
@@ -356,23 +364,47 @@ $("connBadge").addEventListener("click", () => showView("settings"));
 
 // ---------- Theme ----------
 const THEMES = [
-  ["purple", "#b47aff"], ["green", "#00ff9d"], ["blue", "#42a5ff"],
-  ["orange", "#ff8a32"], ["pink", "#ff72b6"], ["light", "#aabaff"]
+  // id, preview colours: page, glow 1, glow 2, accent, accent 2, surface, meta theme-color
+  ["purple", "#0b0716", "#3a1c78", "#b24bc9", "#b794ff", "#8f7bff", "rgba(60,38,115,.75)", "#0b0716"],
+  ["green", "#040f0b", "#0c4a38", "#36d9a6", "#3ee8a4", "#17cfb0", "rgba(14,72,56,.75)", "#040f0b"],
+  ["blue", "#030b1a", "#0b3a7a", "#29c6ff", "#3cc8ff", "#5a9bff", "rgba(14,52,108,.75)", "#030b1a"],
+  ["orange", "#0f0b08", "#4a2a10", "#f0a640", "#ffb347", "#ff8a3d", "rgba(78,50,28,.75)", "#0f0b08"],
+  ["pink", "#14050e", "#5c1139", "#ff7ab8", "#ff80b9", "#ef5aa6", "rgba(104,30,68,.75)", "#14050e"],
+  ["light", "#f5f2ea", "#d9defa", "#c9e4f7", "#5b6cff", "#7a63f0", "rgba(255,255,255,.85)", "#f5f2ea"]
 ];
 function setTheme(theme) {
+  if (!THEMES.some((x) => x[0] === theme)) theme = "purple";
   document.documentElement.setAttribute("data-theme", theme);
   setRaw("rz-glass-theme", theme);
-  document.querySelectorAll(".dot").forEach((d) => d.classList.toggle("on", d.dataset.t === theme));
+  document.querySelectorAll(".theme-card").forEach((d) => {
+    const on = d.dataset.t === theme;
+    d.classList.toggle("on", on);
+    d.setAttribute("aria-pressed", on ? "true" : "false");
+  });
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = theme === "light" ? "#eef1fb" : "#0b0c12";
+  const th = THEMES.find((x) => x[0] === theme);
+  if (meta && th) meta.content = th[7];
 }
-for (const [name, color] of THEMES) {
-  const b = document.createElement("button");
-  b.type = "button"; b.className = "dot"; b.dataset.t = name; b.title = name; b.setAttribute("aria-label", name);
-  b.style.background = color;
-  b.addEventListener("click", () => setTheme(name));
-  $("themes").appendChild(b);
+function renderThemes() {
+  const box = $("themes");
+  const cur = getRaw("rz-glass-theme") || document.documentElement.getAttribute("data-theme") || "purple";
+  box.innerHTML = "";
+  for (const [id, p0, p1, p3, a, a2, s] of THEMES) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "theme-card"; b.dataset.t = id;
+    b.setAttribute("aria-label", t("themeN_" + id));
+    b.style.cssText = `--p-0:${p0};--p-1:${p1};--p-3:${p3};--p-a:${a};--p-b:${a2};--p-s:${s}`;
+    b.innerHTML = '<span class="tc-preview"><i class="pill"></i><i class="dot2"></i><i class="bar"></i></span>' +
+      '<span class="tc-name"></span><span class="tc-sw"></span><span class="tc-check" aria-hidden="true">✓</span>';
+    b.querySelector(".tc-name").textContent = t("themeN_" + id);
+    const sw = b.querySelector(".tc-sw");
+    for (const c of [p0, p1, a, a2]) { const d = document.createElement("span"); d.style.background = c; sw.appendChild(d); }
+    b.addEventListener("click", () => setTheme(id));
+    box.appendChild(b);
+  }
+  setTheme(cur);
 }
+renderThemes();
 setTheme(getRaw("rz-glass-theme") || "purple");
 const animStored = getRaw("rz-anim");
 let animOn = animStored ? animStored === "1" : !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -412,6 +444,7 @@ function applyLang(l) {
   renderJamMsg();
   renderYtMsg();
   renderSp();
+  renderThemes();
   if (allData && mode === "all") renderAll();
   renderStatus();
   renderProxyMsg();
@@ -591,6 +624,7 @@ function play(i) {
     audio.src = trackUrl(tr);
     audio.play().catch(() => {});
   }
+  updatePlayerUI(tr);
   $("dlNow").hidden = isEmbed;
   $("embedReopen").hidden = !isEmbed;
   $("player").hidden = false;
@@ -609,6 +643,65 @@ audio.addEventListener("ended", () => { if (radio.on) radioNext(); else if (curr
 audio.addEventListener("error", () => { if (audio.getAttribute("src")) toast(t("playFailed")); });
 $("next").addEventListener("click", () => goNext());
 $("prev").addEventListener("click", () => play(current - 1));
+
+// ---------- Player UI: artwork, seek bar, play/pause, volume, compact mode ----------
+const fmtTime = (s) => { if (!isFinite(s) || s < 0) s = 0; return Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); };
+const seekEl = $("seek"), volEl = $("vol");
+let seeking = false;
+const setFill = (el, pct) => el.style.setProperty("--p", pct + "%");
+function syncSeek() {
+  if (seeking) return;
+  const d = audio.duration, ok = isFinite(d) && d > 0;
+  seekEl.disabled = !ok;
+  const v = ok ? (audio.currentTime / d) * 1000 : 0;
+  seekEl.value = v; setFill(seekEl, v / 10);
+  $("tCur").textContent = fmtTime(audio.currentTime);
+  $("tDur").textContent = ok ? fmtTime(d) : "0:00";
+}
+function syncPlaying() {
+  const cur = curTrack();
+  const on = !audio.paused && !audio.ended && !!audio.getAttribute("src") && !(cur && cur.src === "embed");
+  $("player").classList.toggle("playing", on);
+}
+["timeupdate", "loadedmetadata", "durationchange", "emptied"].forEach((ev) => audio.addEventListener(ev, syncSeek));
+["play", "playing", "pause", "ended", "emptied"].forEach((ev) => audio.addEventListener(ev, syncPlaying));
+seekEl.addEventListener("input", () => {
+  seeking = true; setFill(seekEl, seekEl.value / 10);
+  if (isFinite(audio.duration)) $("tCur").textContent = fmtTime((audio.duration * seekEl.value) / 1000);
+});
+seekEl.addEventListener("change", () => {
+  if (isFinite(audio.duration)) audio.currentTime = (audio.duration * seekEl.value) / 1000;
+  seeking = false;
+});
+seekEl.addEventListener("blur", () => { seeking = false; });
+$("ppBtn").addEventListener("click", () => {
+  if (!audio.getAttribute("src")) return;
+  if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+});
+const volStored = parseInt(getRaw("rz-vol"), 10);
+volEl.value = Number.isFinite(volStored) ? Math.min(100, Math.max(0, volStored)) : 100;
+audio.volume = volEl.value / 100; setFill(volEl, volEl.value);
+volEl.addEventListener("input", () => { audio.volume = volEl.value / 100; setFill(volEl, volEl.value); setRaw("rz-vol", String(volEl.value)); });
+function artFor(tr) {
+  if (tr.img) return tr.img;
+  if (tr.kind === "youtube" && tr.eid) return "https://i.ytimg.com/vi/" + encodeURIComponent(tr.eid) + "/mqdefault.jpg";
+  const m = /archive\.org\/download\/([^/]+)/.exec(tr.orig || "");
+  return m ? viaProxy("https://archive.org/services/img/" + m[1]) : "";
+}
+function updatePlayerUI(tr) {
+  $("player").classList.toggle("is-embed", tr.src === "embed");
+  const img = $("npImg"), u = artFor(tr);
+  img.onerror = () => { img.hidden = true; };
+  img.onload = () => { img.hidden = false; };
+  if (u) img.src = u; else { img.hidden = true; img.removeAttribute("src"); }
+  syncSeek(); syncPlaying();
+}
+function setCompact(on) {
+  document.body.classList.toggle("player-compact", on);
+  setRaw("rz-player-compact", on ? "1" : "0");
+}
+setCompact(getRaw("rz-player-compact") === "1");
+$("plToggle").addEventListener("click", () => setCompact(!document.body.classList.contains("player-compact")));
 if ("mediaSession" in navigator) {
   try {
     navigator.mediaSession.setActionHandler("nexttrack", () => goNext());
@@ -984,6 +1077,7 @@ function jamTrack(r) {
     streamUrl: r.audio || "",
     dlUrl: allowed ? r.audiodownload : "",
     filename: r.id + ".mp3",
+    img: typeof r.image === "string" && /^https:\/\//.test(r.image) ? r.image : "",
     tags,
     match: typeof r.score === "number" ? r.score : undefined
   };
@@ -1202,8 +1296,12 @@ function parseEmbed(raw) {
   }
   return null;
 }
-function embedTrack(e, title, album) {
-  return { src: "embed", kind: e.kind, etype: e.etype, eid: e.eid, title: title || KIND_NAME[e.kind], album: album || KIND_NAME[e.kind], format: KIND_NAME[e.kind], orig: e.orig, filename: "", tags: [] };
+function spImg(it) {
+  const im = it && it.album && it.album.images && it.album.images[it.album.images.length - 1];
+  return im && typeof im.url === "string" && /^https:\/\//.test(im.url) ? im.url : "";
+}
+function embedTrack(e, title, album, img) {
+  return { img: img || "", src: "embed", kind: e.kind, etype: e.etype, eid: e.eid, title: title || KIND_NAME[e.kind], album: album || KIND_NAME[e.kind], format: KIND_NAME[e.kind], orig: e.orig, filename: "", tags: [] };
 }
 function dlBtns(tr, text, label) {
   return tr.src === "embed" ? [] : [makeBtn(text, label, () => download(tr))];
@@ -1375,7 +1473,7 @@ async function spFetch(query) {
   const d = await r.json();
   return ((d.tracks && d.tracks.items) || []).filter((it) => it && /^[A-Za-z0-9]{10,30}$/.test(it.id || "")).map((it) => {
     const artists = (it.artists || []).map((a) => a.name).filter(Boolean).join(t("sep"));
-    return embedTrack({ kind: "spotify", etype: "track", eid: it.id, orig: "https://open.spotify.com/track/" + it.id }, it.name, [artists, it.album && it.album.name].filter(Boolean).join(" · "));
+    return embedTrack({ kind: "spotify", etype: "track", eid: it.id, orig: "https://open.spotify.com/track/" + it.id }, it.name, [artists, it.album && it.album.name].filter(Boolean).join(" · "), spImg(it));
   });
 }
 async function jamFetch(query) {
@@ -1721,7 +1819,7 @@ async function spSearch(query) {
     const list = ((d.tracks && d.tracks.items) || []).filter((it) => it && /^[A-Za-z0-9]{10,30}$/.test(it.id || "")).map((it) => {
       const artists = (it.artists || []).map((a) => a.name).filter(Boolean).join(t("sep"));
       const album = [artists, it.album && it.album.name].filter(Boolean).join(" · ");
-      return embedTrack({ kind: "spotify", etype: "track", eid: it.id, orig: "https://open.spotify.com/track/" + it.id }, it.name, album);
+      return embedTrack({ kind: "spotify", etype: "track", eid: it.id, orig: "https://open.spotify.com/track/" + it.id }, it.name, album, spImg(it));
     });
     if (!list.length) { setStatus("ytNoResults"); return; }
     setStatus(null);
