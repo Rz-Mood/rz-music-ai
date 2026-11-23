@@ -654,7 +654,15 @@ function play(i) {
   }
 }
 audio.addEventListener("ended", () => { if (radio.on) radioNext(); else if (current + 1 < tracks.length) play(current + 1); });
-audio.addEventListener("error", () => { if (audio.getAttribute("src")) toast(t("playFailed")); });
+audio.addEventListener("error", () => {
+  const tr = curTrack();
+  if (tr && tr.src === "audius" && !tr.fallbackTried) {
+    tr.fallbackTried = true;
+    fallbackAudiusPlayback(tr);
+  } else if (audio.getAttribute("src")) {
+    toast(t("playFailed"));
+  }
+});
 $("next").addEventListener("click", () => goNext());
 $("prev").addEventListener("click", () => play(current - 1));
 
@@ -1531,6 +1539,24 @@ async function arcFetch(query) {
     const d = await (await fetch(A("/advancedsearch.php?q=") + encodeURIComponent(q) + "&fl[]=identifier&fl[]=title&fl[]=creator&sort[]=downloads desc&rows=10&output=json")).json();
     return (d.response && d.response.docs) || [];
   } catch { throw new SrcErr("connFailed"); }
+}
+
+async function fallbackAudiusPlayback(tr) {
+  setStatus("loadingTracks");
+  try {
+    const docs = await arcFetch([tr.title, tr.album].filter(Boolean).join(" "));
+    for (const doc of docs.slice(0, 5)) {
+      const item = await fetchItemTracks(doc.identifier, doc.title);
+      if (!item.list.length) continue;
+      updateBadge(false);
+      setStatus(null);
+      showTracks(item.album, item.list, true);
+      return;
+    }
+    setStatus("playFailed");
+  } catch {
+    connectionFailed();
+  }
 }
 
 async function allSearch(query) {
