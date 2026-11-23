@@ -92,6 +92,7 @@ const I18N = {
     ytPh: "API key", ytSaved: "ذخیره شد. جستجوی اصلی فعال است.", ytRemoved: "کلید حذف شد.",
     ytBadKey: "کلید معتبر نیست (فقط حروف، عدد، - و _).",
     ytTestOk: "✔ کلید معتبر است. برای استفاده «ذخیره» را بزنید.", ytTestFail: "✘ کلید معتبر نیست، محدودیت دامنه اشتباه است یا YouTube در دسترس نیست.",
+    bgAnim: "پس‌زمینه‌ی متحرک", bgAnimHint: "هر رنگ منظره‌ی خودش را دارد: بنفش آسمان شب، سبز جنگل، آبی کوهستان، نارنجی قصر سلطنتی، صورتی شکوفه، سفید آسمان. برای صرفه‌جویی در باتری خاموشش کنید.",
     embedMin: "▁ کوچک کردن", embedExpand: "▢ بزرگ", embedStop: "✕ توقف",
     embedReopen: "▶ پخش‌کننده", embedNoDownload: "آهنگ‌های اصلی دانلود ندارند؛ فقط پخش می‌شوند.",
     embedNoteYt: "پخش با پخش‌کننده‌ی رسمی YouTube. اگر در همین مرورگر وارد YouTube شده باشید، حساب شما شناخته می‌شود. با بستن این پنجره پخش متوقف می‌شود.",
@@ -197,6 +198,7 @@ const I18N = {
     ytPh: "API key", ytSaved: "Saved. Original search is on.", ytRemoved: "Key removed.",
     ytBadKey: "That key doesn't look valid (letters, numbers, - and _ only).",
     ytTestOk: "✔ The key works. Press “Save” to use it.", ytTestFail: "✘ The key is invalid, its referrer restriction is wrong, or YouTube can't be reached.",
+    bgAnim: "Animated background", bgAnimHint: "Each color has its own scene: purple night sky, green forest, blue mountains, orange royal castle, pink blossoms, white sky. Turn it off to save battery.",
     embedMin: "▁ Minimize", embedExpand: "▢ Expand", embedStop: "✕ Stop",
     embedReopen: "▶ Player", embedNoDownload: "Original songs can't be downloaded; they only play.",
     embedNoteYt: "Playing in YouTube's official player. If you are signed in to YouTube in this browser, your account is recognised. Closing this window stops playback.",
@@ -372,6 +374,16 @@ for (const [name, color] of THEMES) {
   $("themes").appendChild(b);
 }
 setTheme(getRaw("rz-glass-theme") || "purple");
+const animStored = getRaw("rz-anim");
+let animOn = animStored ? animStored === "1" : !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+function renderAnim() {
+  document.documentElement.dataset.anim = animOn ? "on" : "off";
+  const sw = $("animSwitch");
+  sw.classList.toggle("on", animOn);
+  sw.setAttribute("aria-checked", animOn ? "true" : "false");
+}
+$("animSwitch").addEventListener("click", () => { animOn = !animOn; setRaw("rz-anim", animOn ? "1" : "0"); renderAnim(); });
+renderAnim();
 
 // ---------- Language ----------
 function applyLang(l) {
