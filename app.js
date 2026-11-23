@@ -62,7 +62,6 @@ const I18N = {
     radioNoResult: "آهنگ مشابهی پیدا نشد. سبک دیگری را امتحان کنید.", radioOn: "رادیو روشن شد 📻", radioOff: "رادیو خاموش شد",
     radioFail: "پیدا کردن آهنگ مشابه ناموفق بود. اتصال را بررسی کنید.", radioUseStyle: "سبک ثابت شد: {tag}",
     radioSourceTitle: "منبع رادیو",
-    srcHintAudius: "Audius: جستجوی آهنگ‌های مشابه با برچسب‌های سبک؛ در صورت خطا، رادیو سراغ Internet Archive می‌رود.",
     srcHintJam: "Jamendo: موسیقی Creative Commons. آهنگ بعدی بر اساس شباهت واقعی (ژانر، ساز، حال‌وهوا، وکال یا بی‌کلام) انتخاب می‌شود و دقیق‌تر است.",
     srcHintArc: "Internet Archive: انتخاب بر اساس برچسب‌های ثبت‌شده‌ی آلبوم؛ دقت کمتر.",
     srcNoKey: "برای رادیوی دقیق‌تر، Client ID رایگان Jamendo را در تنظیمات وارد کنید. تا آن موقع از Internet Archive استفاده می‌شود.",
@@ -80,7 +79,7 @@ const I18N = {
     matchPct: "تطابق {n}٪",
     modeLabel: "نوع جستجو", modeFree: "آزاد (دانلودی)", modeOriginal: "اصلی (YouTube)",
     searchPhOriginal: "نام آهنگ و خواننده، مثلاً Shape of You Ed Sheeran…",
-    modeHintFree: "ابتدا در Audius جستجو می‌شود و در صورت عدم دسترسی، Internet Archive مستقیم امتحان می‌شود.",
+    modeHintFree: "در Internet Archive جستجو می‌شود؛ آثار آزاد و قابل دانلود نمایش داده می‌شوند.",
     modeHintOriginal: "نسخه‌ی اصلی آهنگ‌ها با پخش‌کننده‌ی رسمی YouTube پخش می‌شود. دانلود ندارد؛ ملاک، پخش آهنگ اصلی است. لینک YouTube، Spotify و SoundCloud را هم می‌توانید در «پخش از لینک» بچسبانید.",
     ytNeedKey: "برای جستجوی آهنگ اصلی، کلید رایگان YouTube را در تنظیمات وارد کنید. بدون کلید هم می‌توانید لینک YouTube/Spotify/SoundCloud را در «پخش از لینک» بچسبانید.",
     ytSearchFail: "جستجو در YouTube ناموفق بود. کلید یا اتصال را بررسی کنید (ممکن است YouTube روی اینترنت شما بسته باشد).",
@@ -114,7 +113,7 @@ const I18N = {
     heroTitle: "جستجوی آهنگ", heroSub: "نام آهنگ یا خواننده را بنویسید و روی نتیجه بزنید تا پخش شود.",
     step1: "جستجو", step2: "روی آهنگ بزنید", step3: "پخش می‌شود",
     modeAll: "همه منابع", searchPhAll: "نام آهنگ یا خواننده…",
-    modeHintAll: "هم‌زمان در Audius، YouTube، Spotify، Jamendo و Internet Archive جستجو می‌شود. آهنگ‌های اصلی با پخش‌کننده‌ی رسمی پخش می‌شوند و دانلود ندارند.",
+    modeHintAll: "هم‌زمان در YouTube، Spotify، Jamendo و Internet Archive جستجو می‌شود. آهنگ‌های اصلی با پخش‌کننده‌ی رسمی پخش می‌شوند و دانلود ندارند.",
     allMissing: "منابع غیرفعال: {list}. از تنظیمات فعالشان کنید.",
     srcAll: "همه", srcOff: "کلید لازم", srcConnect: "نیاز به اتصال"
   },
@@ -169,7 +168,6 @@ const I18N = {
     radioNoResult: "No similar song found. Try another style.", radioOn: "Radio on 📻", radioOff: "Radio off",
     radioFail: "Couldn't find a similar song. Check your connection.", radioUseStyle: "Style fixed: {tag}",
     radioSourceTitle: "Radio source",
-    srcHintAudius: "Audius: finds similar tracks by style tags; falls back to Internet Archive if unavailable.",
     srcHintJam: "Jamendo: Creative Commons music. The next song is chosen by real similarity (genre, instruments, mood, vocal or instrumental), so it is more accurate.",
     srcHintArc: "Internet Archive: chosen from the tags listed on the album; less accurate.",
     srcNoKey: "For a more accurate radio, enter your free Jamendo Client ID in Settings. Until then the Internet Archive is used.",
@@ -249,43 +247,6 @@ let playHistory = getJSON("rz-history", []);
 let recent = getJSON("rz-searches", []);
 let favs = getJSON("rz-favs", []);
 const JAM_API = "https://api.jamendo.com/v3.0";
-const AUDIUS_API = "https://api.audius.co/v1";
-const AUDIUS_APP = "RZ_Mood";
-
-function audiusTrack(r) {
-  const user = r.user || {};
-  const artwork = r.artwork || {};
-  const id = String(r.id || "");
-  const streamUrl = AUDIUS_API + "/tracks/" + encodeURIComponent(id) + "/stream?app_name=" + encodeURIComponent(AUDIUS_APP);
-  const rawTags = Array.isArray(r.tags) ? r.tags : String(r.tags || "").split(",");
-  const tags = [...new Set([r.genre, r.mood, ...rawTags]
-    .map((x) => String(x || "").trim().toLowerCase())
-    .filter((x) => x && x.length <= 40))].slice(0, 10);
-  return {
-    src: "audius", aid: id,
-    title: r.title || "Audius track",
-    album: user.name || user.handle || "Audius",
-    format: "MP3",
-    orig: r.permalink || ("https://audius.co/" + id),
-    streamUrl,
-    dlUrl: (r.is_downloadable === true || r.downloadable === true)
-      ? AUDIUS_API + "/tracks/" + encodeURIComponent(id) + "/download?app_name=" + encodeURIComponent(AUDIUS_APP)
-      : "",
-    filename: sanitize((r.title || "audius-track") + ".mp3"),
-    img: artwork._480x480 || artwork._150x150 || "",
-    tags
-  };
-}
-
-async function audiusFetch(query, limit = 20) {
-  const url = AUDIUS_API + "/tracks/search?query=" + encodeURIComponent(query) +
-    "&limit=" + limit + "&app_name=" + encodeURIComponent(AUDIUS_APP);
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error("Audius HTTP " + response.status);
-  const payload = await response.json();
-  if (!payload || !Array.isArray(payload.data)) throw new Error("Invalid Audius response");
-  return payload.data.filter((track) => track && track.id).map(audiusTrack);
-}
 let jamId = /^[A-Za-z0-9]{4,40}$/.test(getRaw("rz-jamendo")) ? getRaw("rz-jamendo") : "";
 const radio = { on: getRaw("rz-radio") === "1", source: getRaw("rz-radio-source"), manual: "", busy: false, seen: [], picks: getJSON("rz-radio-picks", []) };
 const YT_API = "https://www.googleapis.com/youtube/v3";
@@ -498,15 +459,6 @@ async function search(query) {
   setStatus("searching");
   $("results").innerHTML = "";
   $("tracksBox").hidden = true;
-  try {
-    const audiusTracks = await audiusFetch(query, 30);
-    if (audiusTracks.length) {
-      updateBadge(false);
-      setStatus(null);
-      showTracks(query, audiusTracks, false);
-      return;
-    }
-  } catch {}
   const esc = query.replace(/["\\]/g, " ");
   const q = `(title:("${esc}") OR creator:("${esc}")) AND mediatype:audio`;
   const url = A("/advancedsearch.php?q=") + encodeURIComponent(q) +
@@ -613,7 +565,7 @@ function renderTrackList() {
     li.append(name, fmt, makeHeart(tr), ...dlBtns(tr, "⬇", t("download")), makeBtn("⤴", t("share"), () => share(tr)));
     ol.appendChild(li);
   });
-  $("dlAll").hidden = searchTracks.some((x) => x.src === "embed" || (x.src === "audius" && !x.dlUrl));
+  $("dlAll").hidden = searchTracks.some((x) => x.src === "embed");
   markActive();
 }
 
@@ -656,10 +608,7 @@ function play(i) {
 audio.addEventListener("ended", () => { if (radio.on) radioNext(); else if (current + 1 < tracks.length) play(current + 1); });
 audio.addEventListener("error", () => {
   const tr = curTrack();
-  if (tr && tr.src === "audius" && !tr.fallbackTried) {
-    tr.fallbackTried = true;
-    fallbackAudiusPlayback(tr);
-  } else if (audio.getAttribute("src")) {
+  if (audio.getAttribute("src")) {
     toast(t("playFailed"));
   }
 });
@@ -736,7 +685,7 @@ async function download(tr) {
   if (tr.src === "embed") { toast(t("embedNoDownload")); return; }
   const ext = (tr.filename.match(/\.[^.]+$/) || [".mp3"])[0];
   const base = sanitize(tr.title.replace(/\.[^.]+$/, "")) || "music";
-  const url = (tr.src === "jamendo" || tr.src === "audius") ? tr.dlUrl : trackUrl(tr);
+  const url = tr.src === "jamendo" ? tr.dlUrl : trackUrl(tr);
   if (!url) { toast(t("jamNoDownload")); return; }
   if (HAS_EXT_DL) {
     chrome.downloads.download({ url, filename: "Music/" + base + ext, conflictAction: "uniquify" });
@@ -1105,8 +1054,8 @@ function jamTrack(r) {
   };
 }
 function radioSource() {
-  const src = radio.source || (jamId ? "jamendo" : "audius");
-  return src === "jamendo" && !jamId ? "audius" : src;
+  const src = radio.source || "archive";
+  return src === "jamendo" && !jamId ? "archive" : src;
 }
 
 // Pick and play a song with the same style as the current one.
@@ -1117,35 +1066,10 @@ async function radioNext() {
   renderRadio();
   try {
     if (radioSource() === "jamendo") await radioStepJamendo();
-    else if (radioSource() === "audius") await radioStepAudius();
     else await radioStepArchive();
   } finally {
     radio.busy = false;
     renderRadio();
-  }
-}
-
-async function radioStepAudius() {
-  try {
-    const seeds = await radioSeeds();
-    if (!seeds.length) { radioMsg("radioNoStyle", "bad"); return; }
-    const cur = curTrack();
-    const curKey = cur && cur.aid ? "a" + cur.aid : "";
-    const pool = await audiusFetch(seeds.join(" "), 30);
-    const usable = pool.filter((tr) => tr.aid && "a" + tr.aid !== curKey);
-    let fresh = usable.filter((tr) => !radio.seen.includes("a" + tr.aid));
-    if (!fresh.length && usable.length) { radio.seen = []; fresh = usable; }
-    if (!fresh.length) { radioMsg("radioNoResult", "bad"); return; }
-    const tr = fresh[Math.floor(Math.random() * Math.min(12, fresh.length))];
-    radio.seen = [...radio.seen, "a" + tr.aid].slice(-60);
-    tracks = [tr];
-    recordPlays = true;
-    updateBadge(false);
-    play(0);
-    addPick(tr);
-    radioMsg(null);
-  } catch {
-    await radioStepArchive();
   }
 }
 
@@ -1243,10 +1167,9 @@ function setSource(src) {
 }
 function renderSource() {
   const eff = radioSource();
-  $("srcAudius").setAttribute("aria-checked", eff === "audius" ? "true" : "false");
   $("srcJamendo").setAttribute("aria-checked", eff === "jamendo" ? "true" : "false");
   $("srcArchive").setAttribute("aria-checked", eff === "archive" ? "true" : "false");
-  $("radioSourceHint").textContent = eff === "audius" ? t("srcHintAudius") : eff === "jamendo" ? (!jamId ? t("srcNoKey") : t("srcHintJam")) : t("srcHintArc");
+  $("radioSourceHint").textContent = eff === "jamendo" ? (!jamId ? t("srcNoKey") : t("srcHintJam")) : t("srcHintArc");
 }
 
 function renderRadio() {
@@ -1305,7 +1228,6 @@ function renderRadio() {
   $("radioToggle").addEventListener("click", () => setRadio(!radio.on));
   $("radioNextBtn").addEventListener("click", () => radioNext());
   $("radioAutoBtn").addEventListener("click", () => { radio.manual = ""; renderRadio(); });
-  $("srcAudius").addEventListener("click", () => setSource("audius"));
   $("srcJamendo").addEventListener("click", () => {
     if (!jamId) { toast(t("jamNeedsKeyToast")); showView("settings"); return; }
     setSource("jamendo");
@@ -1354,7 +1276,7 @@ function embedTrack(e, title, album, img) {
   return { img: img || "", src: "embed", kind: e.kind, etype: e.etype, eid: e.eid, title: title || KIND_NAME[e.kind], album: album || KIND_NAME[e.kind], format: KIND_NAME[e.kind], orig: e.orig, filename: "", tags: [] };
 }
 function dlBtns(tr, text, label) {
-  return tr.src === "embed" || (tr.src === "audius" && !tr.dlUrl) ? [] : [makeBtn(text, label, () => download(tr))];
+  return tr.src === "embed" ? [] : [makeBtn(text, label, () => download(tr))];
 }
 function embedSrc(tr) {
   if (tr.kind === "youtube") return "https://www.youtube.com/embed/" + encodeURIComponent(tr.eid) + "?autoplay=1&playsinline=1&rel=0";
@@ -1488,7 +1410,7 @@ $("modeFree").addEventListener("click", () => setMode("free"));
 $("modeOriginal").addEventListener("click", () => setMode("original"));
 
 // ---------- All sources: one search over YouTube, Spotify, Jamendo and the Internet Archive ----------
-const SRC_NAME = { audius: "Audius", youtube: "YouTube", spotify: "Spotify", jamendo: "Jamendo", archive: "Internet Archive" };
+const SRC_NAME = { youtube: "YouTube", spotify: "Spotify", jamendo: "Jamendo", archive: "Internet Archive" };
 let allData = null, allFilter = "all";
 class SrcErr extends Error { constructor(key, detail) { super(key); this.key = key; this.detail = detail || ""; } }
 
@@ -1541,30 +1463,11 @@ async function arcFetch(query) {
   } catch { throw new SrcErr("connFailed"); }
 }
 
-async function fallbackAudiusPlayback(tr) {
-  setStatus("loadingTracks");
-  try {
-    const docs = await arcFetch([tr.title, tr.album].filter(Boolean).join(" "));
-    for (const doc of docs.slice(0, 5)) {
-      const item = await fetchItemTracks(doc.identifier, doc.title);
-      if (!item.list.length) continue;
-      updateBadge(false);
-      setStatus(null);
-      showTracks(item.album, item.list, true);
-      return;
-    }
-    setStatus("playFailed");
-  } catch {
-    connectionFailed();
-  }
-}
-
 async function allSearch(query) {
   setStatus("searching");
   $("results").innerHTML = "";
   $("tracksBox").hidden = true;
   const jobs = [], off = [];
-  jobs.push(["audius", audiusFetch(query, 10)]);
   if (ytKey) jobs.push(["youtube", ytFetch(query)]); else off.push("YouTube (" + t("srcOff") + ")");
   if (spTok) jobs.push(["spotify", spFetch(query)]); else off.push("Spotify (" + t("srcConnect") + ")");
   if (jamId) jobs.push(["jamendo", jamFetch(query)]); else off.push("Jamendo (" + t("srcOff") + ")");
