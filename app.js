@@ -13,15 +13,13 @@ const SUGGESTIONS = ["jazz", "piano", "classical", "lofi", "ambient", "rock", "b
 const I18N = {
   fa: {
     dir: "rtl", locale: "fa-IR", other: "EN", sep: "، ",
-    badgeTitle: "وضعیت اتصال", badgeDirect: "اتصال مستقیم", badgeProxy: "پروکسی فعال", badgeBad: "اتصال ناموفق",
+    badgeTitle: "وضعیت اتصال", badgeDirect: "اتصال مستقیم", badgeBad: "اتصال ناموفق",
     searchPh: "جستجوی آهنگ، خواننده یا آلبوم…", search: "جستجو", chipsLabel: "پیشنهاد جستجو",
     linkSummary: "🔗 پخش از لینک", linkPh: "لینک فایل صوتی یا صفحه archive.org", play: "پخش",
     downloadAll: "دانلود همه",
     history: "تاریخچه", clearAll: "پاک کردن همه",
     historyEmpty: "هنوز آهنگی پخش نکرده‌اید. هر آهنگی که پخش کنید اینجا ذخیره می‌شود و می‌توانید دوباره پخش، دانلود یا برای دیگران بفرستید.",
-    settings: "تنظیمات", proxyTitle: "اتصال (پروکسی)",
-    proxyHint: "اگر archive.org روی اینترنت شما بسته است، آدرس پروکسی خودتان را وارد کنید. جستجو، پخش و دانلود از طریق آن انجام می‌شود.",
-    proxyPh: "https://music-proxy.نام‌شما.workers.dev", save: "ذخیره", testConn: "تست اتصال", remove: "حذف",
+    settings: "تنظیمات", save: "ذخیره", testConn: "تست اتصال", remove: "حذف",
     langTitle: "زبان", themeTitle: "رنگ برنامه", dataTitle: "داده‌ها",
     dataHint: "تاریخچه‌ی پخش و جستجوهای اخیر فقط روی همین دستگاه ذخیره می‌شوند.",
     clearSearches: "پاک کردن جستجوهای اخیر", clearHistory: "پاک کردن تاریخچه",
@@ -64,6 +62,7 @@ const I18N = {
     radioNoResult: "آهنگ مشابهی پیدا نشد. سبک دیگری را امتحان کنید.", radioOn: "رادیو روشن شد 📻", radioOff: "رادیو خاموش شد",
     radioFail: "پیدا کردن آهنگ مشابه ناموفق بود. اتصال را بررسی کنید.", radioUseStyle: "سبک ثابت شد: {tag}",
     radioSourceTitle: "منبع رادیو",
+    srcHintAudius: "Audius: جستجوی آهنگ‌های مشابه با برچسب‌های سبک؛ در صورت خطا، رادیو سراغ Internet Archive می‌رود.",
     srcHintJam: "Jamendo: موسیقی Creative Commons. آهنگ بعدی بر اساس شباهت واقعی (ژانر، ساز، حال‌وهوا، وکال یا بی‌کلام) انتخاب می‌شود و دقیق‌تر است.",
     srcHintArc: "Internet Archive: انتخاب بر اساس برچسب‌های ثبت‌شده‌ی آلبوم؛ دقت کمتر.",
     srcNoKey: "برای رادیوی دقیق‌تر، Client ID رایگان Jamendo را در تنظیمات وارد کنید. تا آن موقع از Internet Archive استفاده می‌شود.",
@@ -121,15 +120,13 @@ const I18N = {
   },
   en: {
     dir: "ltr", locale: "en-US", other: "فارسی", sep: ", ",
-    badgeTitle: "Connection status", badgeDirect: "Direct", badgeProxy: "Proxy on", badgeBad: "No connection",
+    badgeTitle: "Connection status", badgeDirect: "Direct", badgeBad: "No connection",
     searchPh: "Search songs, artists or albums…", search: "Search", chipsLabel: "Search suggestions",
     linkSummary: "🔗 Play from link", linkPh: "Audio file link or archive.org page", play: "Play",
     downloadAll: "Download all",
     history: "History", clearAll: "Clear all",
     historyEmpty: "You haven't played anything yet. Every song you play is saved here, so you can play it again, download it or send it to others.",
-    settings: "Settings", proxyTitle: "Connection (proxy)",
-    proxyHint: "If archive.org is blocked on your network, enter your own proxy address. Search, playback and downloads will go through it.",
-    proxyPh: "https://music-proxy.yourname.workers.dev", save: "Save", testConn: "Test connection", remove: "Remove",
+    settings: "Settings", save: "Save", testConn: "Test connection", remove: "Remove",
     langTitle: "Language", themeTitle: "App color", dataTitle: "Data",
     dataHint: "Play history and recent searches are stored on this device only.",
     clearSearches: "Clear recent searches", clearHistory: "Clear history",
@@ -172,6 +169,7 @@ const I18N = {
     radioNoResult: "No similar song found. Try another style.", radioOn: "Radio on 📻", radioOff: "Radio off",
     radioFail: "Couldn't find a similar song. Check your connection.", radioUseStyle: "Style fixed: {tag}",
     radioSourceTitle: "Radio source",
+    srcHintAudius: "Audius: finds similar tracks by style tags; falls back to Internet Archive if unavailable.",
     srcHintJam: "Jamendo: Creative Commons music. The next song is chosen by real similarity (genre, instruments, mood, vocal or instrumental), so it is more accurate.",
     srcHintArc: "Internet Archive: chosen from the tags listed on the album; less accurate.",
     srcNoKey: "For a more accurate radio, enter your free Jamendo Client ID in Settings. Until then the Internet Archive is used.",
@@ -1095,8 +1093,8 @@ function jamTrack(r) {
   };
 }
 function radioSource() {
-  const src = radio.source || (jamId ? "jamendo" : "archive");
-  return src === "jamendo" && !jamId ? "archive" : src;
+  const src = radio.source || (jamId ? "jamendo" : "audius");
+  return src === "jamendo" && !jamId ? "audius" : src;
 }
 
 // Pick and play a song with the same style as the current one.
@@ -1106,10 +1104,36 @@ async function radioNext() {
   radioMsg("radioSearching");
   renderRadio();
   try {
-    if (radioSource() === "jamendo") await radioStepJamendo(); else await radioStepArchive();
+    if (radioSource() === "jamendo") await radioStepJamendo();
+    else if (radioSource() === "audius") await radioStepAudius();
+    else await radioStepArchive();
   } finally {
     radio.busy = false;
     renderRadio();
+  }
+}
+
+async function radioStepAudius() {
+  try {
+    const seeds = await radioSeeds();
+    if (!seeds.length) { radioMsg("radioNoStyle", "bad"); return; }
+    const cur = curTrack();
+    const curKey = cur && cur.aid ? "a" + cur.aid : "";
+    const pool = await audiusFetch(seeds.join(" "), 30);
+    const usable = pool.filter((tr) => tr.aid && "a" + tr.aid !== curKey);
+    let fresh = usable.filter((tr) => !radio.seen.includes("a" + tr.aid));
+    if (!fresh.length && usable.length) { radio.seen = []; fresh = usable; }
+    if (!fresh.length) { radioMsg("radioNoResult", "bad"); return; }
+    const tr = fresh[Math.floor(Math.random() * Math.min(12, fresh.length))];
+    radio.seen = [...radio.seen, "a" + tr.aid].slice(-60);
+    tracks = [tr];
+    recordPlays = true;
+    updateBadge(false);
+    play(0);
+    addPick(tr);
+    radioMsg(null);
+  } catch {
+    await radioStepArchive();
   }
 }
 
@@ -1207,9 +1231,10 @@ function setSource(src) {
 }
 function renderSource() {
   const eff = radioSource();
+  $("srcAudius").setAttribute("aria-checked", eff === "audius" ? "true" : "false");
   $("srcJamendo").setAttribute("aria-checked", eff === "jamendo" ? "true" : "false");
   $("srcArchive").setAttribute("aria-checked", eff === "archive" ? "true" : "false");
-  $("radioSourceHint").textContent = !jamId ? t("srcNoKey") : t(eff === "jamendo" ? "srcHintJam" : "srcHintArc");
+  $("radioSourceHint").textContent = eff === "audius" ? t("srcHintAudius") : eff === "jamendo" ? (!jamId ? t("srcNoKey") : t("srcHintJam")) : t("srcHintArc");
 }
 
 function renderRadio() {
@@ -1268,6 +1293,7 @@ function renderRadio() {
   $("radioToggle").addEventListener("click", () => setRadio(!radio.on));
   $("radioNextBtn").addEventListener("click", () => radioNext());
   $("radioAutoBtn").addEventListener("click", () => { radio.manual = ""; renderRadio(); });
+  $("srcAudius").addEventListener("click", () => setSource("audius"));
   $("srcJamendo").addEventListener("click", () => {
     if (!jamId) { toast(t("jamNeedsKeyToast")); showView("settings"); return; }
     setSource("jamendo");
